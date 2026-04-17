@@ -28,11 +28,11 @@ Next.js customer portal for Notion-backed tasks (see [`internal docs/prd-custom-
    | `SUPABASE_SECRET_KEY`                  | **Server only** — secret key (`sb_secret_...`); never expose or prefix with `NEXT_PUBLIC_` |
    | `NOTION_TOKEN`                         | Notion internal integration secret                                                         |
    | `NOTION_TASKS_DATABASE_ID`             | **Database** id *or* **data source** id for the Tasks DB (Notion API v5+); see below       |
-   | `NOTION_KLANTV2_PROPERTY`              | People property name (default: `KlantV2`)                                                  |
+   | `NOTION_KLANTV2_PROPERTY`              | People column title in Notion — must match exactly (e.g. `Klant V2`; default in code: `KlantV2` if unset) |
 
    **Notion API (task 4):** KlantV2 People shapes on pages and email → Notion user matching are documented in [`internal docs/notion-klantv2-spike.md`](internal%20docs/notion-klantv2-spike.md).
 
-   **`NOTION_TASKS_DATABASE_ID`:** The app resolves a `data_source_id` for queries. You may set either the **database** UUID (classic) or the **data source** UUID from Notion’s API v5 model; the code detects which one works with your integration. You may paste **32 hex characters without hyphens**; they are normalized automatically. Optional check: `node --env-file=.env.local scripts/notion-verify-tasks-id.mjs`.
+   **`NOTION_TASKS_DATABASE_ID`:** The app resolves a `data_source_id` for queries. You may set either the **database** UUID (classic) or the **data source** UUID from Notion’s API v5 model; the code detects which one works with your integration. You may paste **32 hex characters without hyphens**; they are normalized automatically. Optional: `node --env-file=.env.local scripts/notion-verify-tasks-id.mjs` (id check), `node --env-file=.env.local scripts/notion-list-discoverable-users.mjs` (lists workspace people + everyone on the KlantV2 People column — use to verify `NOTION_KLANTV2_PROPERTY` matches the column name exactly, e.g. `Klant V2` vs `KlantV2`).
 
 3. Run the development server:
 

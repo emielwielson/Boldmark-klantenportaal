@@ -6,6 +6,7 @@ import {
   getKlantV2PropertyName,
   getNotionTasksDatabaseId,
 } from "@/lib/notion/config";
+import { getKlantV2ApiPropertyKey } from "@/lib/notion/klant-v2-api-property-key";
 import { getPrimaryDataSourceId } from "@/lib/notion/get-primary-data-source";
 import { mapPageToTask } from "@/lib/notion/map-page-to-task";
 
@@ -21,7 +22,8 @@ export async function listInScopeTaskPages(
   notion: Client,
   opts: {
     databaseId: string;
-    klantV2Property: string;
+    /** Exact key from data source schema (see `getKlantV2ApiPropertyKey`). */
+    klantV2ApiPropertyKey: string;
     notionPersonIds: string[];
   },
 ): Promise<PageObjectResponse[]> {
@@ -32,7 +34,7 @@ export async function listInScopeTaskPages(
   const dataSourceId = await getPrimaryDataSourceId(notion, opts.databaseId);
   const filter = {
     or: opts.notionPersonIds.map((id) => ({
-      property: opts.klantV2Property,
+      property: opts.klantV2ApiPropertyKey,
       type: "people" as const,
       people: { contains: id },
     })),
@@ -68,15 +70,22 @@ export async function listInScopeTaskPages(
 export async function listInScopeTasks(
   notion: Client,
   notionPersonIds: string[],
-  overrides?: Partial<{ databaseId: string; klantV2Property: string }>,
+  overrides?: Partial<{
+    databaseId: string;
+    klantV2Property: string;
+    klantV2ApiPropertyKey: string;
+  }>,
 ): Promise<Task[]> {
   const databaseId = overrides?.databaseId ?? getNotionTasksDatabaseId();
   const klantV2Property =
     overrides?.klantV2Property ?? getKlantV2PropertyName();
+  const klantV2ApiPropertyKey =
+    overrides?.klantV2ApiPropertyKey ??
+    (await getKlantV2ApiPropertyKey(notion));
 
   const pages = await listInScopeTaskPages(notion, {
     databaseId,
-    klantV2Property,
+    klantV2ApiPropertyKey,
     notionPersonIds,
   });
 

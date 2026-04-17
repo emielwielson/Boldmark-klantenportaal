@@ -3,6 +3,7 @@ import type { PageObjectResponse } from "@notionhq/client";
 import type { Task } from "@/types/notion-task";
 
 import { getKlantV2PropertyName } from "@/lib/notion/config";
+import { matchPagePropertyKey } from "@/lib/notion/match-page-property-key";
 
 function richTextPlain(rich: Array<{ plain_text?: string }>): string {
   return rich
@@ -30,7 +31,11 @@ export function extractKlantV2PersonIds(
   page: PageObjectResponse,
   klantV2PropertyName: string,
 ): string[] {
-  const prop = page.properties[klantV2PropertyName];
+  const key = matchPagePropertyKey(page.properties, klantV2PropertyName);
+  if (!key) {
+    return [];
+  }
+  const prop = page.properties[key];
   if (!prop || prop.type !== "people") {
     return [];
   }

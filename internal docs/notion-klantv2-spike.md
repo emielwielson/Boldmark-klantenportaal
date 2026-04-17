@@ -4,7 +4,7 @@ This note captures what we rely on from the Notion API for the customer portal. 
 
 ## KlantV2 on task pages
 
-- The Tasks database has a **People** property (name from `NOTION_KLANTV2_PROPERTY`, default `KlantV2`).
+- The Tasks database has a **People** property whose **name in the API matches the column title** in Notion (set `NOTION_KLANTV2_PROPERTY`; e.g. `Klant V2` if the column label has a space — `KlantV2` and `Klant V2` are different keys).
 - On each **page** (`PageObjectResponse`), that property appears as:
 
   `{ "type": "people", "people": [ … ] }`
