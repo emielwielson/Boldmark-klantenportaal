@@ -225,7 +225,7 @@ Omit `api/cron/` unless a future feature adds scheduled jobs; background work fo
 
 - **RLS:** Cached task rows must only be visible when the authenticated user’s resolved **person** id is among the **`KlantV2`** values for that task.
 - **Server-side checks:** Every read and mutation validates task scope (defense in depth with RLS).
-- **Secrets:** Notion integration token and Supabase service role (if any) live in environment or managed secrets; never ship to the client.
+- **Secrets:** Notion integration token and Supabase secret key (if any) live in environment or managed secrets; never ship to the client.
 
 ---
 

@@ -5,7 +5,7 @@ Derived from `prd-custom-customer-portal.md`.
 ## Relevant Files
 
 - `package.json` — Dependencies: Next.js (App Router), React, Tailwind, Supabase client/server, Notion SDK.
-- `.env.local` / Vercel env — `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (server only), `NOTION_TOKEN`, Tasks database ID, property names (e.g. `KlantV2`). Never commit secrets.
+- `.env.local` / Vercel env — `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY` (server only), `NOTION_TOKEN`, Tasks database ID, property names (e.g. `KlantV2`). Never commit secrets.
 - `middleware.ts` — Optional: Supabase session refresh for protected routes.
 - `app/layout.tsx` — Root layout, fonts, global Notion-like styles.
 - `app/login/page.tsx` — Email + magic link UI (FR-21).
@@ -15,7 +15,7 @@ Derived from `prd-custom-customer-portal.md`.
 - `app/api/...` or `app/**/actions.ts` — Server Actions / route handlers only path to Notion (FR-11).
 - `lib/supabase/client.ts` — Browser Supabase client for auth.
 - `lib/supabase/server.ts` — Server client with cookies for RLS-aware reads where applicable.
-- `lib/supabase/admin.ts` — Service-role client for sync jobs only if RLS blocks server sync (use sparingly, validate scope in code).
+- `lib/supabase/admin.ts` — Server client using `SUPABASE_SECRET_KEY` for sync jobs only if RLS blocks server sync (use sparingly, validate scope in code).
 - `lib/notion/client.ts` — Single Notion client instance; no token export to client.
 - `lib/notion/tasks.ts` — Query/update task pages; map properties to app types (FR-8, FR-11).
 - `lib/sync/tasks-sync.ts` — Pull tasks from Notion, filter by resolved person in `KlantV2`, upsert cache (FR-9, FR-13–FR-16).
@@ -54,7 +54,7 @@ Derived from `prd-custom-customer-portal.md`.
   - [ ] 3.2 Design `user_person_scope` (or equivalent): link `auth.users` / `user_id` to Notion person IDs that match the login email after resolution (§7.4).
   - [ ] 3.3 Design `notion_sync_cache` (or split tables): store task page id, serialized properties, `klant_v2_person_ids[]`, `last_synced_at` (FR-15).
   - [ ] 3.4 Write RLS policies: users read/write only cache rows where their resolved person ID is contained in the task’s `KlantV2` set (FR-17); add policies for `user_person_scope` as needed.
-  - [ ] 3.5 Document whether sync upserts use service role + manual scope checks vs user-scoped inserts—either is valid if scope is enforced in code and RLS matches (FR-6).
+  - [ ] 3.5 Document whether sync upserts use secret key + manual scope checks vs user-scoped inserts—either is valid if scope is enforced in code and RLS matches (FR-6).
 
 - [ ] 4.0 Person resolution and Notion API integration (server-only)
   - [ ] 4.1 Implement `lib/notion/client.ts` with token from env only; never import into client components (FR-20).

@@ -21,14 +21,14 @@ Next.js customer portal for Notion-backed tasks (see [`internal docs/prd-custom-
    cp .env.example .env.local
    ```
 
-   | Variable                        | Notes                                                        |
-   | ------------------------------- | ------------------------------------------------------------ |
-   | `NEXT_PUBLIC_SUPABASE_URL`      | Supabase project URL                                         |
-   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anon key (browser-safe)                               |
-   | `SUPABASE_SERVICE_ROLE_KEY`     | **Server only** — never expose or prefix with `NEXT_PUBLIC_` |
-   | `NOTION_TOKEN`                  | Notion internal integration secret                           |
-   | `NOTION_TASKS_DATABASE_ID`      | ID of the single Tasks database                              |
-   | `NOTION_KLANTV2_PROPERTY`       | People property name (default: `KlantV2`)                    |
+   | Variable                               | Notes                                                                                      |
+   | -------------------------------------- | ------------------------------------------------------------------------------------------ |
+   | `NEXT_PUBLIC_SUPABASE_URL`             | Supabase project URL                                                                       |
+   | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key (`sb_publishable_...`, browser-safe)                                       |
+   | `SUPABASE_SECRET_KEY`                  | **Server only** — secret key (`sb_secret_...`); never expose or prefix with `NEXT_PUBLIC_` |
+   | `NOTION_TOKEN`                         | Notion internal integration secret                                                         |
+   | `NOTION_TASKS_DATABASE_ID`             | ID of the single Tasks database                                                            |
+   | `NOTION_KLANTV2_PROPERTY`              | People property name (default: `KlantV2`)                                                  |
 
 3. Run the development server:
 
