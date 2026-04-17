@@ -1,3 +1,5 @@
+import { logPortalEvent } from "@/lib/observability/server-log";
+
 type SupabaseServer = Awaited<
   ReturnType<(typeof import("@/lib/supabase/server"))["createClient"]>
 >;
@@ -17,7 +19,11 @@ export async function userHasTaskAccess(
     .maybeSingle();
 
   if (error) {
-    console.error("[task-scope] userHasTaskAccess:", error.message);
+    logPortalEvent("warn", {
+      event: "task_scope_query_failed",
+      notionPageId,
+      message: error.message,
+    });
     return false;
   }
 

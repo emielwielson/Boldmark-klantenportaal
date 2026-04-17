@@ -34,6 +34,8 @@ Next.js customer portal for Notion-backed tasks (see [`internal docs/prd-custom-
 
    **`NOTION_TASKS_DATABASE_ID`:** The app resolves a `data_source_id` for queries. You may set either the **database** UUID (classic) or the **data source** UUID from Notion’s API v5 model; the code detects which one works with your integration. You may paste **32 hex characters without hyphens**; they are normalized automatically. Optional: `node --env-file=.env.local scripts/notion-verify-tasks-id.mjs` (id check), `node --env-file=.env.local scripts/notion-list-discoverable-users.mjs` (lists workspace people + everyone on the KlantV2 People column — use to verify `NOTION_KLANTV2_PROPERTY` matches the column name exactly, e.g. `Klant V2` vs `KlantV2`).
 
+   **Server-only Notion (FR-7, FR-20):** `NOTION_TOKEN` and `NOTION_TASKS_DATABASE_ID` must never be prefixed with `NEXT_PUBLIC_` or imported from Client Components. All Notion reads and writes go through server code ([`lib/notion/client.ts`](lib/notion/client.ts), [`lib/notion/tasks.ts`](lib/notion/tasks.ts), [`app/dashboard/actions.ts`](app/dashboard/actions.ts)) using the configured Tasks database id — users cannot supply arbitrary Notion database IDs.
+
 3. Run the development server:
 
    ```bash
@@ -98,6 +100,8 @@ SQL migrations live in [`supabase/migrations/`](supabase/migrations/). The first
 | `npm run dev`          | Start Next.js in development mode                  |
 | `npm run dev:lan`      | Same, listening on `0.0.0.0` (LAN / phone testing) |
 | `npm run build`        | Production build                                   |
+| `npm run test`         | Vitest unit tests (pure helpers)                   |
+| `npm run test:watch`   | Vitest watch mode                                  |
 | `npm run start`        | Start production server (after `build`)            |
 | `npm run lint`         | Run ESLint                                         |
 | `npm run format`       | Format with Prettier                               |
@@ -116,3 +120,6 @@ Do not commit `.env.local` or real secrets; only `.env.example` is tracked.
 
 - PRD: [`internal docs/prd-custom-customer-portal.md`](internal%20docs/prd-custom-customer-portal.md)
 - Task list: [`internal docs/tasks-prd-custom-customer-portal.md`](internal%20docs/tasks-prd-custom-customer-portal.md)
+- Manual QA: [`internal docs/manual-test-checklist-customer-portal.md`](internal%20docs/manual-test-checklist-customer-portal.md)
+
+**Observability:** Server logs use JSON lines via [`lib/observability/server-log.ts`](lib/observability/server-log.ts) (`event`, `userId`, etc.). Set `LOG_PII=1` only when debugging and you need email in sync logs.

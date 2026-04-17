@@ -28,6 +28,9 @@ Derived from `prd-custom-customer-portal.md`.
 - `components/tasks/TaskRowEditor.tsx` — Editable fields for one task; submit via Server Action.
 - `components/ui/AppBanner.tsx`, `Spinner.tsx`, `InlineFieldError.tsx` — Sync/mutation feedback (FR-23, FR-24).
 - `lib/notion/cached-property-display.ts` — Cached Notion property JSON → labels, plain edit values, Notion URL helper (FR-10).
+- `lib/observability/server-log.ts` — Structured JSON logs for sync and property issues (FR-27).
+- `vitest.config.ts` — Unit tests (`npm run test`) for pure Notion helpers.
+- [`internal docs/manual-test-checklist-customer-portal.md`](manual-test-checklist-customer-portal.md) — Manual QA vs PRD §9.
 - `__tests__/` or `*.test.ts` — Unit tests for person-resolver, scope checks, property mapping (where pure logic allows).
 
 ### Notes
@@ -80,8 +83,8 @@ Derived from `prd-custom-customer-portal.md`.
   - [x] 6.4 Responsive layout for mobile and desktop (§6.3); touch-friendly controls.
   - [x] 6.5 Centralized error UI for denied access, Notion errors, and network failures (FR-24).
 
-- [ ] 7.0 Quality, observability, and handover
-  - [ ] 7.1 Add structured logging for sync failures and property mapping mismatches (FR-27).
-  - [ ] 7.2 Add unit tests for pure helpers: person ID matching, scope check helpers, property normalization (where deterministic).
-  - [ ] 7.3 Manual test checklist aligned with §9 success metrics: isolation between two test accounts, edit round-trip, refresh after Notion-side change.
-  - [ ] 7.4 Production readiness: secure headers, no leaked env in client bundle, Notion integration scoped to Tasks DB only (FR-7).
+- [x] 7.0 Quality, observability, and handover
+  - [x] 7.1 Add structured logging for sync failures and property mapping mismatches (FR-27).
+  - [x] 7.2 Add unit tests for pure helpers: person ID matching, scope check helpers, property normalization (where deterministic).
+  - [x] 7.3 Manual test checklist aligned with §9 success metrics: isolation between two test accounts, edit round-trip, refresh after Notion-side change.
+  - [x] 7.4 Production readiness: secure headers, no leaked env in client bundle, Notion integration scoped to Tasks DB only (FR-7).

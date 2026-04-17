@@ -1,3 +1,4 @@
+import { logPortalEvent, maybeEmail } from "@/lib/observability/server-log";
 import { createClient } from "@/lib/supabase/server";
 import { getNotionClient } from "@/lib/notion/client";
 import { isNotionTasksDatabaseConfigured } from "@/lib/notion/config";
@@ -106,11 +107,13 @@ export async function syncTasksForUser(opts: {
         .delete()
         .eq("notion_page_id", notionPageId);
       if (delErr) {
-        console.error(
-          "[sync] failed to delete stale cache row",
+        logPortalEvent("warn", {
+          event: "stale_cache_delete_failed",
+          userId: opts.userId,
+          ...maybeEmail(opts.email),
           notionPageId,
-          delErr.message,
-        );
+          message: delErr.message,
+        });
       }
     }
 
@@ -125,6 +128,14 @@ export async function syncTasksForUser(opts: {
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     const cacheLastSyncedAt = await maxCacheLastSyncedAt(supabase);
+    logPortalEvent("error", {
+      event: "sync_failed",
+      userId: opts.userId,
+      ...maybeEmail(opts.email),
+      message,
+      usedStaleCache: Boolean(cacheLastSyncedAt),
+      cacheLastSyncedAt: cacheLastSyncedAt ?? undefined,
+    });
     return {
       kind: "error",
       message,
