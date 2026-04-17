@@ -19,6 +19,7 @@ Derived from `prd-custom-customer-portal.md`.
 - `lib/notion/client.ts` — Single Notion client instance; no token export to client.
 - `lib/notion/tasks.ts` — Query/update task pages; map properties to app types (FR-8, FR-11).
 - `lib/sync/tasks-sync.ts` — Pull tasks from Notion, filter by resolved person in `KlantV2`, upsert cache (FR-9, FR-13–FR-16).
+- `app/dashboard/actions.ts` — Server Actions for cache + Notion updates (`updateTaskProperty`, task 5).
 - `lib/person-resolver/index.ts` — Resolve `auth email` → Notion user/person IDs used in `KlantV2` (FR-2, FR-9).
 - `lib/permissions/task-scope.ts` — Server-side check: task ID in user scope (FR-18, FR-19).
 - `types/notion-task.ts` — TypeScript models for cached task rows and API payloads.
@@ -63,13 +64,13 @@ Derived from `prd-custom-customer-portal.md`.
   - [x] 4.4 Implement query that lists task pages from the Tasks database and filters to rows where any `KlantV2` ID matches the resolved person set (FR-5, FR-9); handle multiple people per task (FR-5, §8).
   - [x] 4.5 Map Notion properties to a normalized `Task` type for UI and cache (FR-11); keep mapping in one module for FR-27 (rename detection/logging later).
 
-- [ ] 5.0 Sync pipeline: login + refresh, cache updates, writes to Notion
-  - [ ] 5.1 On successful auth and on dashboard load/refresh, run sync: fetch in-scope tasks from Notion, upsert into `notion_sync_cache`, update `last_synced_at` (FR-13, FR-14).
-  - [ ] 5.2 On user edit from UI: optimistic or immediate update to Supabase cache, then async update to Notion page properties; document **last-write-wins** behavior (FR-12, FR-16).
-  - [ ] 5.3 Ensure every read/update by task ID checks scope in server code even if RLS also applies (FR-18, FR-19).
-  - [ ] 5.4 Handle FR-25: no matching person on any task—show “No access” / contact administrator; avoid empty dashboard with no explanation.
-  - [ ] 5.5 Handle FR-26: Notion rate limits / downtime—surface errors, allow stale cache reads with clear “last updated” messaging where safe.
-  - [ ] 5.6 Handle FR-28: user removed from `KlantV2` or task deleted—row disappears on next sync; no orphaned client-only state.
+- [x] 5.0 Sync pipeline: login + refresh, cache updates, writes to Notion
+  - [x] 5.1 On successful auth and on dashboard load/refresh, run sync: fetch in-scope tasks from Notion, upsert into `notion_sync_cache`, update `last_synced_at` (FR-13, FR-14).
+  - [x] 5.2 On user edit from UI: optimistic or immediate update to Supabase cache, then async update to Notion page properties; document **last-write-wins** behavior (FR-12, FR-16).
+  - [x] 5.3 Ensure every read/update by task ID checks scope in server code even if RLS also applies (FR-18, FR-19).
+  - [x] 5.4 Handle FR-25: no matching person on any task—show “No access” / contact administrator; avoid empty dashboard with no explanation.
+  - [x] 5.5 Handle FR-26: Notion rate limits / downtime—surface errors, allow stale cache reads with clear “last updated” messaging where safe.
+  - [x] 5.6 Handle FR-28: user removed from `KlantV2` or task deleted—row disappears on next sync; no orphaned client-only state.
 
 - [ ] 6.0 Dashboard UI, Notion-like styling, and responsive behavior
   - [ ] 6.1 Build dashboard: table or card list of in-scope tasks from Supabase (RLS-scoped reads) with loading skeletons (FR-22, FR-23).

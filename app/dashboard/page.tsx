@@ -1,7 +1,19 @@
 import { SignOutButton } from "@/components/auth/sign-out-button";
-import { resolveAndPersistPersonScope } from "@/lib/person-resolver";
+import { syncTasksForUser } from "@/lib/sync/tasks-sync";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+
+function formatNlTimestamp(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  try {
+    return new Intl.DateTimeFormat("nl-NL", {
+      dateStyle: "short",
+      timeStyle: "short",
+    }).format(new Date(iso));
+  } catch {
+    return iso;
+  }
+}
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -13,14 +25,58 @@ export default async function DashboardPage() {
     redirect("/login?reason=session_expired");
   }
 
+  let syncBanner: {
+    variant: "ok" | "warn" | "denied" | "config";
+    title: string;
+    detail?: string;
+    lastSyncedLabel?: string;
+  } | null = null;
+
   if (user.email) {
-    try {
-      await resolveAndPersistPersonScope({
-        userId: user.id,
-        email: user.email,
-      });
-    } catch (err) {
-      console.error("resolveAndPersistPersonScope failed:", err);
+    const result = await syncTasksForUser({
+      userId: user.id,
+      email: user.email,
+    });
+
+    if (result.kind === "ok") {
+      syncBanner = {
+        variant: "ok",
+        title: "Synchronisatie gelukt",
+        detail: `${result.taskCount} ${result.taskCount === 1 ? "taak" : "taken"} bijgewerkt.`,
+        lastSyncedLabel: formatNlTimestamp(
+          result.cacheLastSyncedAt ?? result.syncedAt,
+        ),
+      };
+    } else if (result.kind === "error") {
+      syncBanner = {
+        variant: "warn",
+        title: "Synchronisatie mislukt",
+        detail: result.message,
+        lastSyncedLabel: result.usedStaleCache
+          ? formatNlTimestamp(result.cacheLastSyncedAt)
+          : undefined,
+      };
+    } else if (result.kind === "no_notion_person") {
+      syncBanner = {
+        variant: "denied",
+        title: "Geen toegang",
+        detail:
+          "Je e-mailadres komt niet overeen met een Notion-gebruiker voor dit portaal. Neem contact op met je beheerder.",
+      };
+    } else if (result.kind === "tasks_db_not_configured") {
+      syncBanner = {
+        variant: "config",
+        title: "Notion-taken database ontbreekt",
+        detail:
+          "Zet NOTION_TASKS_DATABASE_ID in de serveromgeving om taken te synchroniseren.",
+      };
+    } else if (result.kind === "notion_not_configured") {
+      syncBanner = {
+        variant: "config",
+        title: "Notion is niet geconfigureerd",
+        detail:
+          "Zet NOTION_TOKEN in de serveromgeving om synchronisatie in te schakelen.",
+      };
     }
   }
 
@@ -36,15 +92,42 @@ export default async function DashboardPage() {
               Ingelogd als{" "}
               <span className="font-medium text-ink">{user.email}</span>
             </p>
+            {syncBanner?.lastSyncedLabel && syncBanner.variant !== "denied" ? (
+              <p className="mt-2 text-xs text-ink/55">
+                Laatst bijgewerkt: {syncBanner.lastSyncedLabel}
+              </p>
+            ) : null}
           </div>
           <SignOutButton />
         </header>
 
+        {syncBanner ? (
+          <div
+            role="status"
+            className={
+              syncBanner.variant === "ok"
+                ? "rounded-lg border border-emerald-200 bg-emerald-50/90 px-4 py-3 text-sm text-emerald-950"
+                : syncBanner.variant === "warn"
+                  ? "rounded-lg border border-amber-200 bg-amber-50/90 px-4 py-3 text-sm text-amber-950"
+                  : syncBanner.variant === "denied"
+                    ? "rounded-lg border border-red-200 bg-red-50/90 px-4 py-3 text-sm text-red-950"
+                    : "rounded-lg border border-black/[0.08] bg-white px-4 py-3 text-sm text-ink/85 shadow-sm"
+            }
+          >
+            <p className="font-medium">{syncBanner.title}</p>
+            {syncBanner.detail ? (
+              <p className="mt-1 leading-relaxed opacity-95">
+                {syncBanner.detail}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
         <div className="rounded-lg border border-black/[0.06] bg-white px-6 py-8 shadow-sm">
           <p className="text-sm leading-relaxed text-ink/80">
-            Taken uit Notion verschijnen hier na implementatie van
-            synchronisatie (volgende taken). Je bent succesvol ingelogd met
-            magic link.
+            De volledige takenlijst en bewerkingen in het portaal volgen in een
+            volgende stap (UI). Synchronisatie met Notion en cache zijn actief;
+            beheerders kunnen de cache in Supabase controleren na een refresh.
           </p>
         </div>
       </div>

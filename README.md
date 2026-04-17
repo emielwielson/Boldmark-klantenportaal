@@ -81,7 +81,13 @@ SQL migrations live in [`supabase/migrations/`](supabase/migrations/). The first
 **Sync and RLS (task 3.5)**
 
 - Requests using the **publishable key** and the user’s **JWT** (`createClient` from [`lib/supabase/server.ts`](lib/supabase/server.ts) in a logged-in context) are subject to **RLS**: users only see cache rows where one of their `user_person_scope.notion_person_id` values appears in `notion_sync_cache.klant_v2_person_ids`.
-- The **secret key** (`SUPABASE_SECRET_KEY`) **bypasses RLS**. Server-side sync (Notion → Postgres) will typically use it; the app **must** still filter by user scope before returning or mutating data (defense in depth with RLS on user-facing paths — FR-6, FR-17).
+- The **secret key** (`SUPABASE_SECRET_KEY`) **bypasses RLS**. This app’s main sync path uses the **user JWT** so RLS applies to cache upserts; the app still validates task scope in server code before mutations (FR-6, FR-18).
+
+**Sync pipeline and edits (task 5)**
+
+- **Pull:** [`lib/sync/tasks-sync.ts`](lib/sync/tasks-sync.ts) runs on magic-link callback and on each dashboard load: resolve email → Notion person ids, query in-scope tasks, **upsert** [`notion_sync_cache`](supabase/migrations/20250417120000_cache_and_rls.sql), **delete** cache rows that are no longer returned (staleness / removed from `KlantV2`).
+- **Errors:** If Notion fails, the dashboard shows the error and, when possible, the last known sync time from cache (FR-26). If the user cannot be matched to a Notion person, a clear “no access” message is shown (FR-25).
+- **Push:** Server Action [`app/dashboard/actions.ts`](app/dashboard/actions.ts) (`updateTaskProperty`) checks scope via [`lib/permissions/task-scope.ts`](lib/permissions/task-scope.ts), updates the Notion page, then refreshes the cache row. **Last-write-wins** (FR-12): the latest successful write to Notion wins; there is no merge. Property payloads are built in [`lib/notion/map-task-to-notion-properties.ts`](lib/notion/map-task-to-notion-properties.ts) from cached property types.
 
 ## Scripts
 
