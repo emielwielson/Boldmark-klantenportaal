@@ -1,18 +1,56 @@
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
+/**
+ * PKCE magic-link return URL. Session cookies must be written on this response;
+ * keep cookie handling inline so Route Handler + redirect stay in one flow.
+ */
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/dashboard";
+  const url = new URL(request.url);
+  const code = url.searchParams.get("code");
+  const nextPath = url.searchParams.get("next") ?? "/dashboard";
 
-  if (code) {
-    const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
-    }
+  if (!code) {
+    return NextResponse.redirect(new URL("/login?error=auth", url.origin));
   }
 
-  return NextResponse.redirect(`${origin}/login?error=auth`);
+  const cookieStore = await cookies();
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options),
+            );
+          } catch {
+            // ignore
+          }
+        },
+      },
+    },
+  );
+
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+  if (error) {
+    console.error("[auth/callback] exchangeCodeForSession:", error.message);
+    return NextResponse.redirect(new URL("/login?error=auth", url.origin));
+  }
+
+  // Allow cookie writes from the auth client to flush before sending the redirect
+  // (mitigates timing issues with deferred auth events in some server runtimes).
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  const redirectTo = new URL(nextPath, url.origin);
+  return NextResponse.redirect(redirectTo);
 }

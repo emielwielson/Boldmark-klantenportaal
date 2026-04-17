@@ -46,27 +46,32 @@ Configure these in the [Supabase Dashboard](https://supabase.com/dashboard) for 
    Enable **Email**. Enable **magic link** / “Sign in with email” (OTP to inbox) as needed.
 
 2. **Authentication → URL configuration**
-   - **Site URL:** `http://localhost:3000` for local development. After deploying, set this to your production URL (e.g. `https://your-app.vercel.app`).
-   - **Redirect URLs:** Add at least:
-     - `http://localhost:3000/**`
-     - `http://localhost:3000/auth/callback`
-     - `https://<your-production-host>/**`
-     - `https://<your-production-host>/auth/callback`
-
-   Magic links use `emailRedirectTo` pointing at `/auth/callback` on the same origin as the app.
+   - **Site URL:** `http://localhost:3000` for local development on your machine. After deploying, set this to your production URL (e.g. `https://your-app.vercel.app`).
+   - **Redirect URLs:** For normal day-to-day dev, **localhost in Supabase is enough**: e.g. `http://localhost:3000/**` and `http://localhost:3000/auth/callback` (or the wildcard pattern you already use). The magic link uses whatever origin your browser had when you requested the link (`emailRedirectTo` → `/auth/callback` on that host).
+   - **Production:** add your deployed host (`https://…/**` and `/auth/callback`) when you go live.
+   - **Only if** you open the app from another host (e.g. `http://192.168.x.x:3000` on your phone): add **that** origin and `/auth/callback` in Supabase too, and add the host to `allowedDevOrigins` in [`next.config.ts`](next.config.ts) if Next.js warns about blocked `/_next/webpack-hmr`. Use `npm run dev:lan` if you need the dev server reachable on the LAN.
 
 3. After the first **Vercel** deployment, copy the production URL into **Site URL** and **Redirect URLs** so production magic links work.
 
+### Troubleshooting
+
+- **“This site can’t be reached” / “This page isn’t working” after `npm run dev`:**
+  - Confirm the URL is **`http://`** not `https://` for local dev.
+  - Stop anything else on port **3000**, or run `npx next dev -p 3001` and use that port everywhere (including Supabase redirect URLs).
+  - Delete the `.next` folder and run `npm run dev` again.
+  - Try a private/incognito window (stale cookies or a redirect loop).
+
 ## Scripts
 
-| Command                | Description                             |
-| ---------------------- | --------------------------------------- |
-| `npm run dev`          | Start Next.js in development mode       |
-| `npm run build`        | Production build                        |
-| `npm run start`        | Start production server (after `build`) |
-| `npm run lint`         | Run ESLint                              |
-| `npm run format`       | Format with Prettier                    |
-| `npm run format:check` | Check formatting                        |
+| Command                | Description                                        |
+| ---------------------- | -------------------------------------------------- |
+| `npm run dev`          | Start Next.js in development mode                  |
+| `npm run dev:lan`      | Same, listening on `0.0.0.0` (LAN / phone testing) |
+| `npm run build`        | Production build                                   |
+| `npm run start`        | Start production server (after `build`)            |
+| `npm run lint`         | Run ESLint                                         |
+| `npm run format`       | Format with Prettier                               |
+| `npm run format:check` | Check formatting                                   |
 
 ## Deploy on Vercel
 
