@@ -27,10 +27,12 @@ Next.js customer portal for Notion-backed tasks (see [`internal docs/prd-custom-
    | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key (`sb_publishable_...`, browser-safe)                                       |
    | `SUPABASE_SECRET_KEY`                  | **Server only** — secret key (`sb_secret_...`); never expose or prefix with `NEXT_PUBLIC_` |
    | `NOTION_TOKEN`                         | Notion internal integration secret                                                         |
-   | `NOTION_TASKS_DATABASE_ID`             | ID of the single Tasks database                                                            |
+   | `NOTION_TASKS_DATABASE_ID`             | **Database** id *or* **data source** id for the Tasks DB (Notion API v5+); see below       |
    | `NOTION_KLANTV2_PROPERTY`              | People property name (default: `KlantV2`)                                                  |
 
    **Notion API (task 4):** KlantV2 People shapes on pages and email → Notion user matching are documented in [`internal docs/notion-klantv2-spike.md`](internal%20docs/notion-klantv2-spike.md).
+
+   **`NOTION_TASKS_DATABASE_ID`:** The app resolves a `data_source_id` for queries. You may set either the **database** UUID (classic) or the **data source** UUID from Notion’s API v5 model; the code detects which one works with your integration. You may paste **32 hex characters without hyphens**; they are normalized automatically. Optional check: `node --env-file=.env.local scripts/notion-verify-tasks-id.mjs`.
 
 3. Run the development server:
 

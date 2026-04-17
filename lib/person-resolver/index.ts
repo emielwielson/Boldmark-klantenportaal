@@ -4,6 +4,8 @@ import { createClient as createSupabaseServerClient } from "@/lib/supabase/serve
 import { getNotionClient } from "@/lib/notion/client";
 import { isNotionConfigured } from "@/lib/notion/config";
 
+import { findGuestPersonIdsByEmailViaTaskPages } from "@/lib/person-resolver/guest-person-ids-from-tasks";
+
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
@@ -15,14 +17,12 @@ function isPersonUser(
 }
 
 /**
- * Lists all workspace users visible to the integration and returns Notion person user ids
- * whose `person.email` matches the given email (case-insensitive).
+ * Resolves Notion person user ids for the login email:
  *
- * **Spike notes (4.2):** `users.list` returns full `UserObjectResponse` entries. For `type:
- * "person"`, `person.email` is optional in the API; when missing, email match is impossible
- * for that row — use `users.retrieve({ user_id })` if you need to refresh a partial user.
- * Guests invited only to specific pages may not appear in `users.list`; resolving them may
- * require another strategy (e.g. collecting ids from task pages — not implemented here).
+ * 1. **Workspace list:** paginate `users.list` and match `person.email` (case-insensitive).
+ * 2. **Guests:** if that yields no ids, scan all pages in the Tasks database, collect every
+ *    `KlantV2` person user id, and `users.retrieve` each until `person.email` matches (see
+ *    `guest-person-ids-from-tasks.ts`).
  */
 export async function findNotionPersonIdsByEmail(
   notion: Client,
@@ -47,7 +47,11 @@ export async function findNotionPersonIdsByEmail(
     cursor = res.has_more ? (res.next_cursor ?? undefined) : undefined;
   } while (cursor);
 
-  return matches;
+  if (matches.length > 0) {
+    return matches;
+  }
+
+  return findGuestPersonIdsByEmailViaTaskPages(notion, email);
 }
 
 /**

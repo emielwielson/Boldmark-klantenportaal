@@ -15,9 +15,9 @@ This note captures what we rely on from the Notion API for the customer portal. 
 
 - Supabase Auth gives `auth.users.email`. Notion exposes emails on **person** users via `person.email` on `UserObjectResponse` when the integration can read users (`users.read` capability).
 - **Primary strategy:** paginate `users.list`, keep users with `type === "person"` where `person.email` matches the auth email (case-insensitive).
-- **Limitation:** Guests or users not returned by `users.list` will not resolve; extending with `users.retrieve` per candidate id or harvesting ids from pages is possible but not implemented here.
+- **Guest strategy (when the list yields no match):** paginate the Tasks data source **without** a people filter, collect every Notion **user** id on `KlantV2` across all pages, then call `users.retrieve` for each distinct id and match `person.email` to the auth email (`lib/person-resolver/guest-person-ids-from-tasks.ts`). This is heavier than the list path; use it so guests who do not appear in `users.list` can still log in when they appear on at least one task.
 
 ## Querying tasks (API v5+)
 
-- The SDK uses **`dataSources.query`** with `data_source_id`. We obtain that id from `databases.retrieve` → `data_sources[0].id` (see `lib/notion/get-primary-data-source.ts`).
+- The SDK uses **`dataSources.query`** with `data_source_id`. We resolve it via `lib/notion/get-primary-data-source.ts`: either `NOTION_TASKS_DATABASE_ID` is a **database** id (then we use the first `data_sources` entry) or it is already a **data source** id (validated with `dataSources.retrieve`).
 - Filters use `property` + `type: "people"` + `people: { contains: "<notion-user-uuid>" }`, combined with top-level `{ or: [ … ] }` for multiple assignees.
