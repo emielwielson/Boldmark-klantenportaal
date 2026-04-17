@@ -30,6 +30,8 @@ Next.js customer portal for Notion-backed tasks (see [`internal docs/prd-custom-
    | `NOTION_TASKS_DATABASE_ID`             | ID of the single Tasks database                                                            |
    | `NOTION_KLANTV2_PROPERTY`              | People property name (default: `KlantV2`)                                                  |
 
+   **Notion API (task 4):** KlantV2 People shapes on pages and email → Notion user matching are documented in [`internal docs/notion-klantv2-spike.md`](internal%20docs/notion-klantv2-spike.md).
+
 3. Run the development server:
 
    ```bash

@@ -1,4 +1,5 @@
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { resolveAndPersistPersonScope } from "@/lib/person-resolver";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -10,6 +11,17 @@ export default async function DashboardPage() {
 
   if (!user) {
     redirect("/login?reason=session_expired");
+  }
+
+  if (user.email) {
+    try {
+      await resolveAndPersistPersonScope({
+        userId: user.id,
+        email: user.email,
+      });
+    } catch (err) {
+      console.error("resolveAndPersistPersonScope failed:", err);
+    }
   }
 
   return (

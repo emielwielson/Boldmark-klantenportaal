@@ -56,12 +56,12 @@ Derived from `prd-custom-customer-portal.md`.
   - [x] 3.4 Write RLS policies: users read/write only cache rows where their resolved person ID is contained in the task’s `KlantV2` set (FR-17); add policies for `user_person_scope` as needed.
   - [x] 3.5 Document whether sync upserts use secret key + manual scope checks vs user-scoped inserts—either is valid if scope is enforced in code and RLS matches (FR-6).
 
-- [ ] 4.0 Person resolution and Notion API integration (server-only)
-  - [ ] 4.1 Implement `lib/notion/client.ts` with token from env only; never import into client components (FR-20).
-  - [ ] 4.2 Spike: given Tasks database pages, read `KlantV2` people values and determine how to obtain stable IDs and match to Supabase Auth email (workspace users vs guests—follow Notion API capabilities) (FR-2, FR-4).
-  - [ ] 4.3 Implement `person-resolver`: after login, resolve email → one or more Notion person/user IDs; persist to `user_person_scope` for RLS and filtering (FR-2, FR-9).
-  - [ ] 4.4 Implement query that lists task pages from the Tasks database and filters to rows where any `KlantV2` ID matches the resolved person set (FR-5, FR-9); handle multiple people per task (FR-5, §8).
-  - [ ] 4.5 Map Notion properties to a normalized `Task` type for UI and cache (FR-11); keep mapping in one module for FR-27 (rename detection/logging later).
+- [x] 4.0 Person resolution and Notion API integration (server-only)
+  - [x] 4.1 Implement `lib/notion/client.ts` with token from env only; never import into client components (FR-20).
+  - [x] 4.2 Spike: given Tasks database pages, read `KlantV2` people values and determine how to obtain stable IDs and match to Supabase Auth email (workspace users vs guests—follow Notion API capabilities) (FR-2, FR-4).
+  - [x] 4.3 Implement `person-resolver`: after login, resolve email → one or more Notion person/user IDs; persist to `user_person_scope` for RLS and filtering (FR-2, FR-9).
+  - [x] 4.4 Implement query that lists task pages from the Tasks database and filters to rows where any `KlantV2` ID matches the resolved person set (FR-5, FR-9); handle multiple people per task (FR-5, §8).
+  - [x] 4.5 Map Notion properties to a normalized `Task` type for UI and cache (FR-11); keep mapping in one module for FR-27 (rename detection/logging later).
 
 - [ ] 5.0 Sync pipeline: login + refresh, cache updates, writes to Notion
   - [ ] 5.1 On successful auth and on dashboard load/refresh, run sync: fetch in-scope tasks from Notion, upsert into `notion_sync_cache`, update `last_synced_at` (FR-13, FR-14).
