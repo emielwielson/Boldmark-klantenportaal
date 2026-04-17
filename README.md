@@ -36,7 +36,26 @@ Next.js customer portal for Notion-backed tasks (see [`internal docs/prd-custom-
    npm run dev
    ```
 
-   Open [http://localhost:3000](http://localhost:3000) — the root path redirects to `/login` (placeholder until auth is implemented).
+   Open [http://localhost:3000](http://localhost:3000) — the root path redirects to `/login`. After configuring Supabase Auth (below), you can request a magic link and land on `/dashboard`.
+
+## Supabase Auth (dashboard configuration)
+
+Configure these in the [Supabase Dashboard](https://supabase.com/dashboard) for your project (task 2.0 — magic link).
+
+1. **Authentication → Providers → Email**  
+   Enable **Email**. Enable **magic link** / “Sign in with email” (OTP to inbox) as needed.
+
+2. **Authentication → URL configuration**
+   - **Site URL:** `http://localhost:3000` for local development. After deploying, set this to your production URL (e.g. `https://your-app.vercel.app`).
+   - **Redirect URLs:** Add at least:
+     - `http://localhost:3000/**`
+     - `http://localhost:3000/auth/callback`
+     - `https://<your-production-host>/**`
+     - `https://<your-production-host>/auth/callback`
+
+   Magic links use `emailRedirectTo` pointing at `/auth/callback` on the same origin as the app.
+
+3. After the first **Vercel** deployment, copy the production URL into **Site URL** and **Redirect URLs** so production magic links work.
 
 ## Scripts
 
@@ -54,7 +73,7 @@ Next.js customer portal for Notion-backed tasks (see [`internal docs/prd-custom-
 1. Import the GitHub repository [emielwielson/Boldmark-klantenportaal](https://github.com/emielwielson/Boldmark-klantenportaal) in the [Vercel dashboard](https://vercel.com/new).
 2. Framework preset: **Next.js** (auto-detected).
 3. Add the same variables as in `.env.example` under **Settings → Environment Variables** for **Production** and **Preview** (use test keys for Preview if desired).
-4. Deploy. Update Supabase Auth **redirect URLs** when the production URL is known (magic link callback — completed in task 2.0).
+4. Deploy. Add your production URL and `https://<host>/auth/callback` to Supabase **Redirect URLs** and set **Site URL** (see [Supabase Auth](#supabase-auth-dashboard-configuration) above).
 
 Do not commit `.env.local` or real secrets; only `.env.example` is tracked.
 
