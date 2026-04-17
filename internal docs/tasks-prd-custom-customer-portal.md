@@ -49,12 +49,12 @@ Derived from `prd-custom-customer-portal.md`.
   - [ ] 2.3 Wire Supabase client session (cookies / middleware) so authenticated users can reach `/dashboard` and unauthenticated users are sent to `/login`.
   - [ ] 2.4 Handle sign-out and session expiry with clear UX (redirect to login).
 
-- [ ] 3.0 Supabase database: cache schema, `user_person_scope`, and RLS
-  - [ ] 3.1 Design migrations for `portal_config` (Tasks DB id, `KlantV2` property name, optional flags).
-  - [ ] 3.2 Design `user_person_scope` (or equivalent): link `auth.users` / `user_id` to Notion person IDs that match the login email after resolution (§7.4).
-  - [ ] 3.3 Design `notion_sync_cache` (or split tables): store task page id, serialized properties, `klant_v2_person_ids[]`, `last_synced_at` (FR-15).
-  - [ ] 3.4 Write RLS policies: users read/write only cache rows where their resolved person ID is contained in the task’s `KlantV2` set (FR-17); add policies for `user_person_scope` as needed.
-  - [ ] 3.5 Document whether sync upserts use secret key + manual scope checks vs user-scoped inserts—either is valid if scope is enforced in code and RLS matches (FR-6).
+- [x] 3.0 Supabase database: cache schema, `user_person_scope`, and RLS
+  - [x] 3.1 Design migrations for `portal_config` (Tasks DB id, `KlantV2` property name, optional flags).
+  - [x] 3.2 Design `user_person_scope` (or equivalent): link `auth.users` / `user_id` to Notion person IDs that match the login email after resolution (§7.4).
+  - [x] 3.3 Design `notion_sync_cache` (or split tables): store task page id, serialized properties, `klant_v2_person_ids[]`, `last_synced_at` (FR-15).
+  - [x] 3.4 Write RLS policies: users read/write only cache rows where their resolved person ID is contained in the task’s `KlantV2` set (FR-17); add policies for `user_person_scope` as needed.
+  - [x] 3.5 Document whether sync upserts use secret key + manual scope checks vs user-scoped inserts—either is valid if scope is enforced in code and RLS matches (FR-6).
 
 - [ ] 4.0 Person resolution and Notion API integration (server-only)
   - [ ] 4.1 Implement `lib/notion/client.ts` with token from env only; never import into client components (FR-20).

@@ -61,6 +61,26 @@ Configure these in the [Supabase Dashboard](https://supabase.com/dashboard) for 
   - Delete the `.next` folder and run `npm run dev` again.
   - Try a private/incognito window (stale cookies or a redirect loop).
 
+## Database (Supabase — task 3.0)
+
+SQL migrations live in [`supabase/migrations/`](supabase/migrations/). The first migration defines:
+
+| Table               | Purpose                                                                                   |
+| ------------------- | ----------------------------------------------------------------------------------------- |
+| `portal_config`     | Single row (`id = 1`): optional DB mirror of Tasks DB id + `KlantV2` property name.       |
+| `user_person_scope` | Maps `auth.users` → Notion person id(s) for RLS (filled after person resolution, task 4). |
+| `notion_sync_cache` | Cached Notion task rows: `properties` (jsonb), `klant_v2_person_ids`, `last_synced_at`.   |
+
+**Apply migrations**
+
+1. **Dashboard (simplest):** Supabase project → **SQL Editor** → paste the contents of [`supabase/migrations/20250417120000_cache_and_rls.sql`](supabase/migrations/20250417120000_cache_and_rls.sql) → **Run** (use a dev project first).
+2. **Supabase CLI:** `supabase link` then `supabase db push` (requires [CLI install](https://supabase.com/docs/guides/cli) and linked project).
+
+**Sync and RLS (task 3.5)**
+
+- Requests using the **publishable key** and the user’s **JWT** (`createClient` from [`lib/supabase/server.ts`](lib/supabase/server.ts) in a logged-in context) are subject to **RLS**: users only see cache rows where one of their `user_person_scope.notion_person_id` values appears in `notion_sync_cache.klant_v2_person_ids`.
+- The **secret key** (`SUPABASE_SECRET_KEY`) **bypasses RLS**. Server-side sync (Notion → Postgres) will typically use it; the app **must** still filter by user scope before returning or mutating data (defense in depth with RLS on user-facing paths — FR-6, FR-17).
+
 ## Scripts
 
 | Command                | Description                                        |
