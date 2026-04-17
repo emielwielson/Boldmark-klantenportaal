@@ -1,0 +1,35 @@
+export type AppBannerVariant = "ok" | "warn" | "denied" | "config" | "neutral";
+
+type AppBannerProps = {
+  variant: AppBannerVariant;
+  title: string;
+  detail?: string;
+  className?: string;
+};
+
+const variantClass: Record<AppBannerVariant, string> = {
+  ok: "border-emerald-200 bg-emerald-50/90 text-emerald-950",
+  warn: "border-amber-200 bg-amber-50/90 text-amber-950",
+  denied: "border-red-200 bg-red-50/90 text-red-950",
+  config: "border-black/[0.08] bg-white text-ink/85 shadow-sm",
+  neutral: "border-black/[0.08] bg-white text-ink/85 shadow-sm",
+};
+
+export function AppBanner({
+  variant,
+  title,
+  detail,
+  className = "",
+}: AppBannerProps) {
+  return (
+    <div
+      role="status"
+      className={`rounded-lg border px-4 py-3 text-sm ${variantClass[variant]} ${className}`}
+    >
+      <p className="font-medium">{title}</p>
+      {detail ? (
+        <p className="mt-1 leading-relaxed opacity-95">{detail}</p>
+      ) : null}
+    </div>
+  );
+}

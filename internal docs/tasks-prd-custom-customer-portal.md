@@ -26,7 +26,8 @@ Derived from `prd-custom-customer-portal.md`.
 - `supabase/migrations/*.sql` — `portal_config`, `user_person_scope`, `notion_sync_cache` (or equivalent), RLS policies (FR-17).
 - `components/tasks/TaskList.tsx` — Renders authorized tasks (Notion-like table/cards).
 - `components/tasks/TaskRowEditor.tsx` — Editable fields for one task; submit via Server Action.
-- `components/ui/Spinner.tsx`, `components/ui/ErrorBanner.tsx` — Loading and errors (FR-23, FR-24).
+- `components/ui/AppBanner.tsx`, `Spinner.tsx`, `InlineFieldError.tsx` — Sync/mutation feedback (FR-23, FR-24).
+- `lib/notion/cached-property-display.ts` — Cached Notion property JSON → labels, plain edit values, Notion URL helper (FR-10).
 - `__tests__/` or `*.test.ts` — Unit tests for person-resolver, scope checks, property mapping (where pure logic allows).
 
 ### Notes
@@ -72,12 +73,12 @@ Derived from `prd-custom-customer-portal.md`.
   - [x] 5.5 Handle FR-26: Notion rate limits / downtime—surface errors, allow stale cache reads with clear “last updated” messaging where safe.
   - [x] 5.6 Handle FR-28: user removed from `KlantV2` or task deleted—row disappears on next sync; no orphaned client-only state.
 
-- [ ] 6.0 Dashboard UI, Notion-like styling, and responsive behavior
-  - [ ] 6.1 Build dashboard: table or card list of in-scope tasks from Supabase (RLS-scoped reads) with loading skeletons (FR-22, FR-23).
-  - [ ] 6.2 Implement editing for **all** surfaced task properties (FR-10): forms or inline cells bound to Server Actions; validate types against Notion property types.
-  - [ ] 6.3 Apply Notion-like visual language: neutral background, readable type scale, subtle borders—leave hook for logo later (§6.2, §8).
-  - [ ] 6.4 Responsive layout for mobile and desktop (§6.3); touch-friendly controls.
-  - [ ] 6.5 Centralized error UI for denied access, Notion errors, and network failures (FR-24).
+- [x] 6.0 Dashboard UI, Notion-like styling, and responsive behavior
+  - [x] 6.1 Build dashboard: table or card list of in-scope tasks from Supabase (RLS-scoped reads) with loading skeletons (FR-22, FR-23).
+  - [x] 6.2 Implement editing for **all** surfaced task properties (FR-10): forms or inline cells bound to Server Actions; validate types against Notion property types.
+  - [x] 6.3 Apply Notion-like visual language: neutral background, readable type scale, subtle borders—leave hook for logo later (§6.2, §8).
+  - [x] 6.4 Responsive layout for mobile and desktop (§6.3); touch-friendly controls.
+  - [x] 6.5 Centralized error UI for denied access, Notion errors, and network failures (FR-24).
 
 - [ ] 7.0 Quality, observability, and handover
   - [ ] 7.1 Add structured logging for sync failures and property mapping mismatches (FR-27).

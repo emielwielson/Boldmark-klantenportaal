@@ -1,0 +1,418 @@
+"use client";
+
+import { updateTaskProperty } from "@/app/dashboard/actions";
+import {
+  cachedPropertyToPlainValue,
+  dateStartForInput,
+  formatCachedPropertyPreview,
+  getCachedPropertyType,
+  getMultiSelectOptions,
+  getSelectOptions,
+  getStatusOptions,
+  notionPublicPageUrl,
+  orderedPropertyKeys,
+  plainDateFromInput,
+  shouldAllowPortalEdit,
+} from "@/lib/notion/cached-property-display";
+import { InlineFieldError } from "@/components/ui/InlineFieldError";
+import { Spinner } from "@/components/ui/Spinner";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
+export type CachedTaskRow = {
+  notion_page_id: string;
+  properties: Record<string, unknown>;
+  last_synced_at: string;
+};
+
+type TaskRowEditorProps = {
+  task: CachedTaskRow;
+  klantV2PropertyName: string;
+};
+
+function formatNlShort(iso: string) {
+  try {
+    return new Intl.DateTimeFormat("nl-NL", {
+      dateStyle: "short",
+      timeStyle: "short",
+    }).format(new Date(iso));
+  } catch {
+    return iso;
+  }
+}
+
+export function TaskRowEditor({ task, klantV2PropertyName }: TaskRowEditorProps) {
+  const router = useRouter();
+  const [savingKey, setSavingKey] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const keys = orderedPropertyKeys(task.properties, klantV2PropertyName);
+  const notionUrl = notionPublicPageUrl(task.notion_page_id);
+
+  async function saveField(propertyName: string, plainValue: unknown) {
+    setSavingKey(propertyName);
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next[propertyName];
+      return next;
+    });
+    try {
+      const r = await updateTaskProperty(
+        task.notion_page_id,
+        propertyName,
+        plainValue,
+      );
+      if (!r.ok) {
+        setFieldErrors((prev) => ({ ...prev, [propertyName]: r.error }));
+        return;
+      }
+      router.refresh();
+    } finally {
+      setSavingKey(null);
+    }
+  }
+
+  return (
+    <article className="rounded-lg border border-black/[0.06] bg-white shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-black/[0.06] px-4 py-3 md:px-5">
+        <p className="text-xs text-ink/55">
+          Laatst gesynchroniseerd: {formatNlShort(task.last_synced_at)}
+        </p>
+        <a
+          href={notionUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="min-h-[44px] shrink-0 rounded-md border border-black/[0.08] bg-page px-3 py-2 text-sm font-medium text-ink/90 underline-offset-2 hover:underline"
+        >
+          Open in Notion
+        </a>
+      </div>
+
+      <div className="grid gap-5 px-4 py-4 md:grid-cols-2 md:gap-6 md:px-5 md:py-5">
+        {keys.map((propKey) => (
+          <PropertyField
+            key={`${propKey}-${task.last_synced_at}`}
+            propKey={propKey}
+            snapshot={task.properties[propKey]}
+            klantV2PropertyName={klantV2PropertyName}
+            syncToken={task.last_synced_at}
+            saving={savingKey === propKey}
+            error={fieldErrors[propKey] ?? null}
+            onSave={saveField}
+          />
+        ))}
+      </div>
+    </article>
+  );
+}
+
+type PropertyFieldProps = {
+  propKey: string;
+  snapshot: unknown;
+  klantV2PropertyName: string;
+  syncToken: string;
+  saving: boolean;
+  error: string | null;
+  onSave: (propertyName: string, plainValue: unknown) => void | Promise<void>;
+};
+
+function PropertyField({
+  propKey,
+  snapshot,
+  klantV2PropertyName,
+  syncToken,
+  saving,
+  error,
+  onSave,
+}: PropertyFieldProps) {
+  const label = propKey.trim();
+  const type = getCachedPropertyType(snapshot);
+  const allowEdit = shouldAllowPortalEdit(propKey, snapshot, klantV2PropertyName);
+
+  if (!allowEdit) {
+    const klant = isKlantHint(propKey, klantV2PropertyName);
+    const hint = klant
+      ? "Toegewezen via Klant — beheer in Notion."
+      : "Alleen in Notion te wijzigen.";
+    return (
+      <div className="min-w-0">
+        <p className="text-xs font-medium uppercase tracking-wide text-ink/45">
+          {label}
+        </p>
+        <p className="mt-1.5 whitespace-pre-wrap break-words text-sm text-ink/85">
+          {formatCachedPropertyPreview(snapshot)}
+        </p>
+        <p className="mt-1 text-xs text-ink/50">{hint}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-w-0">
+      <label className="text-xs font-medium uppercase tracking-wide text-ink/45">
+        {label}
+      </label>
+      <div className="mt-1.5">
+        <EditableControl
+          key={`${propKey}-${syncToken}`}
+          propKey={propKey}
+          snapshot={snapshot}
+          type={type ?? ""}
+          saving={saving}
+          onSave={onSave}
+        />
+      </div>
+      <InlineFieldError message={error} />
+    </div>
+  );
+}
+
+function isKlantHint(propKey: string, klant: string) {
+  return propKey.trim().toLowerCase() === klant.trim().toLowerCase();
+}
+
+type EditableControlProps = {
+  propKey: string;
+  snapshot: unknown;
+  type: string;
+  saving: boolean;
+  onSave: (propertyName: string, plainValue: unknown) => void | Promise<void>;
+};
+
+function EditableControl({
+  propKey,
+  snapshot,
+  type,
+  saving,
+  onSave,
+}: EditableControlProps) {
+  const initial = cachedPropertyToPlainValue(snapshot);
+
+  const [textDraft, setTextDraft] = useState(() =>
+    typeof initial === "string" ? initial : String(initial ?? ""),
+  );
+  const [numDraft, setNumDraft] = useState(
+    () =>
+      typeof initial === "number"
+        ? String(initial)
+        : initial === "" || initial === null
+          ? ""
+          : String(initial ?? ""),
+  );
+  const [dateDraft, setDateDraft] = useState(() => dateStartForInput(snapshot));
+
+  const btnClass =
+    "inline-flex min-h-[44px] items-center justify-center gap-2 rounded-md border border-black/[0.1] bg-page px-3 text-sm font-medium text-ink hover:bg-black/[0.03] disabled:opacity-50";
+
+  if (type === "checkbox") {
+    const checked = Boolean(initial);
+    return (
+      <label className="inline-flex min-h-[44px] cursor-pointer items-center gap-2">
+        <input
+          type="checkbox"
+          className="size-4 rounded border-black/20"
+          checked={checked}
+          disabled={saving}
+          onChange={(e) => void onSave(propKey, e.target.checked)}
+        />
+        {saving ? <Spinner className="size-4" /> : null}
+      </label>
+    );
+  }
+
+  if (type === "select") {
+    const opts = getSelectOptions(snapshot);
+    const val = typeof initial === "string" ? initial : "";
+    return (
+      <div className="flex flex-wrap items-center gap-2">
+        <select
+          className="min-h-[44px] w-full max-w-md rounded-md border border-black/[0.12] bg-white px-3 text-sm text-ink shadow-sm"
+          value={val}
+          disabled={saving}
+          onChange={(e) =>
+            void onSave(propKey, e.target.value === "" ? null : e.target.value)
+          }
+        >
+          <option value="">—</option>
+          {opts.map((o) => (
+            <option key={o.name} value={o.name}>
+              {o.name}
+            </option>
+          ))}
+        </select>
+        {saving ? <Spinner className="size-4" /> : null}
+      </div>
+    );
+  }
+
+  if (type === "status") {
+    const opts = getStatusOptions(snapshot);
+    const val = typeof initial === "string" ? initial : "";
+    return (
+      <div className="flex flex-wrap items-center gap-2">
+        <select
+          className="min-h-[44px] w-full max-w-md rounded-md border border-black/[0.12] bg-white px-3 text-sm text-ink shadow-sm"
+          value={val}
+          disabled={saving}
+          onChange={(e) =>
+            void onSave(propKey, e.target.value === "" ? null : e.target.value)
+          }
+        >
+          <option value="">—</option>
+          {opts.map((o) => (
+            <option key={o.name} value={o.name}>
+              {o.name}
+            </option>
+          ))}
+        </select>
+        {saving ? <Spinner className="size-4" /> : null}
+      </div>
+    );
+  }
+
+  if (type === "multi_select") {
+    const opts = getMultiSelectOptions(snapshot);
+    const selected = Array.isArray(initial)
+      ? new Set(initial as string[])
+      : new Set<string>();
+    const fromOpts = opts.map((o) => o.name);
+    const union = [...new Set([...fromOpts, ...selected])].sort((a, b) =>
+      a.localeCompare(b, "nl"),
+    );
+    return (
+      <ul className="space-y-2">
+        {union.map((name) => {
+          const on = selected.has(name);
+          return (
+            <li key={name}>
+              <label className="flex min-h-[44px] cursor-pointer items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  className="size-4 rounded border-black/20"
+                  checked={on}
+                  disabled={saving}
+                  onChange={() => {
+                    const next = new Set(selected);
+                    if (on) next.delete(name);
+                    else next.add(name);
+                    void onSave(propKey, [...next]);
+                  }}
+                />
+                <span>{name}</span>
+              </label>
+            </li>
+          );
+        })}
+        {union.length === 0 ? (
+          <p className="text-sm text-ink/60">Geen waarden.</p>
+        ) : null}
+        {saving ? <Spinner className="size-4" /> : null}
+      </ul>
+    );
+  }
+
+  if (type === "number") {
+    return (
+      <div className="flex flex-wrap items-end gap-2">
+        <input
+          type="number"
+          className="min-h-[44px] w-full max-w-md rounded-md border border-black/[0.12] bg-white px-3 text-sm text-ink shadow-sm"
+          value={numDraft}
+          disabled={saving}
+          onChange={(e) => setNumDraft(e.target.value)}
+        />
+        <button
+          type="button"
+          className={btnClass}
+          disabled={saving}
+          onClick={() => {
+            const t = numDraft.trim();
+            if (t === "") void onSave(propKey, null);
+            else {
+              const n = Number(t);
+              if (Number.isNaN(n)) return;
+              void onSave(propKey, n);
+            }
+          }}
+        >
+          {saving ? <Spinner className="size-4" /> : null}
+          Opslaan
+        </button>
+      </div>
+    );
+  }
+
+  if (type === "date") {
+    return (
+      <div className="flex flex-wrap items-end gap-2">
+        <input
+          type="date"
+          className="min-h-[44px] w-full max-w-md rounded-md border border-black/[0.12] bg-white px-3 text-sm text-ink shadow-sm"
+          value={dateDraft}
+          disabled={saving}
+          onChange={(e) => setDateDraft(e.target.value)}
+        />
+        <button
+          type="button"
+          className={btnClass}
+          disabled={saving}
+          onClick={() => {
+            const t = dateDraft.trim();
+            if (!t) void onSave(propKey, null);
+            else void onSave(propKey, plainDateFromInput(t));
+          }}
+        >
+          {saving ? <Spinner className="size-4" /> : null}
+          Opslaan
+        </button>
+      </div>
+    );
+  }
+
+  if (type === "url" || type === "email" || type === "phone_number") {
+    const inputType = type === "email" ? "email" : type === "url" ? "url" : "tel";
+    return (
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+        <input
+          type={inputType}
+          className="min-h-[44px] w-full flex-1 rounded-md border border-black/[0.12] bg-white px-3 text-sm text-ink shadow-sm"
+          value={textDraft}
+          disabled={saving}
+          onChange={(e) => setTextDraft(e.target.value)}
+          autoComplete="off"
+        />
+        <button
+          type="button"
+          className={btnClass}
+          disabled={saving}
+          onClick={() => void onSave(propKey, textDraft)}
+        >
+          {saving ? <Spinner className="size-4" /> : null}
+          Opslaan
+        </button>
+      </div>
+    );
+  }
+
+  // title, rich_text
+  return (
+    <div className="space-y-2">
+      <textarea
+        className="min-h-[88px] w-full rounded-md border border-black/[0.12] bg-white px-3 py-2 text-sm text-ink shadow-sm"
+        value={textDraft}
+        disabled={saving}
+        onChange={(e) => setTextDraft(e.target.value)}
+        rows={type === "title" ? 2 : 4}
+      />
+      <button
+        type="button"
+        className={btnClass}
+        disabled={saving}
+        onClick={() => void onSave(propKey, textDraft)}
+      >
+        {saving ? <Spinner className="size-4" /> : null}
+        Opslaan
+      </button>
+    </div>
+  );
+}

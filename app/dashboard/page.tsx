@@ -1,4 +1,8 @@
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { TaskList } from "@/components/tasks/task-list";
+import type { CachedTaskRow } from "@/components/tasks/task-row-editor";
+import { AppBanner } from "@/components/ui/AppBanner";
+import { getKlantV2PropertyName } from "@/lib/notion/config";
 import { syncTasksForUser } from "@/lib/sync/tasks-sync";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -80,9 +84,30 @@ export default async function DashboardPage() {
     }
   }
 
+  const blockTaskUi =
+    syncBanner?.variant === "denied" || syncBanner?.variant === "config";
+
+  let cacheError: string | null = null;
+  let cachedTasks: CachedTaskRow[] = [];
+
+  if (!blockTaskUi) {
+    const { data, error } = await supabase
+      .from("notion_sync_cache")
+      .select("notion_page_id, properties, last_synced_at")
+      .order("last_synced_at", { ascending: false });
+
+    if (error) {
+      cacheError = error.message;
+    } else {
+      cachedTasks = (data ?? []) as CachedTaskRow[];
+    }
+  }
+
+  const klantV2PropertyName = getKlantV2PropertyName();
+
   return (
     <div className="flex flex-1 flex-col px-4 py-10">
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-xl font-semibold tracking-tight text-ink">
@@ -102,34 +127,24 @@ export default async function DashboardPage() {
         </header>
 
         {syncBanner ? (
-          <div
-            role="status"
-            className={
-              syncBanner.variant === "ok"
-                ? "rounded-lg border border-emerald-200 bg-emerald-50/90 px-4 py-3 text-sm text-emerald-950"
-                : syncBanner.variant === "warn"
-                  ? "rounded-lg border border-amber-200 bg-amber-50/90 px-4 py-3 text-sm text-amber-950"
-                  : syncBanner.variant === "denied"
-                    ? "rounded-lg border border-red-200 bg-red-50/90 px-4 py-3 text-sm text-red-950"
-                    : "rounded-lg border border-black/[0.08] bg-white px-4 py-3 text-sm text-ink/85 shadow-sm"
-            }
-          >
-            <p className="font-medium">{syncBanner.title}</p>
-            {syncBanner.detail ? (
-              <p className="mt-1 leading-relaxed opacity-95">
-                {syncBanner.detail}
-              </p>
-            ) : null}
-          </div>
+          <AppBanner
+            variant={syncBanner.variant}
+            title={syncBanner.title}
+            detail={syncBanner.detail}
+          />
         ) : null}
 
-        <div className="rounded-lg border border-black/[0.06] bg-white px-6 py-8 shadow-sm">
-          <p className="text-sm leading-relaxed text-ink/80">
-            De volledige takenlijst en bewerkingen in het portaal volgen in een
-            volgende stap (UI). Synchronisatie met Notion en cache zijn actief;
-            beheerders kunnen de cache in Supabase controleren na een refresh.
-          </p>
-        </div>
+        {cacheError ? (
+          <AppBanner
+            variant="warn"
+            title="Cache kon niet geladen worden"
+            detail={cacheError}
+          />
+        ) : null}
+
+        {!blockTaskUi && !cacheError ? (
+          <TaskList tasks={cachedTasks} klantV2PropertyName={klantV2PropertyName} />
+        ) : null}
       </div>
     </div>
   );
