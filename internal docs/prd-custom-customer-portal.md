@@ -27,11 +27,13 @@ Build a **single Vercel project** (one deployment, not reused as a multi-custome
 ## 3. User Stories
 
 ### As a guest (end user linked via `KlantV2`)
+
 - **US-1:** As a guest, I want to log in with my email (magic link), so that I can access the portal without managing passwords.
 - **US-2:** As a guest, I want to see only tasks where I am linked in **`KlantV2`**, so that I cannot view other clients’ tasks.
 - **US-3:** As a guest, I want to edit task fields in the portal, so that I can keep information up to date without using Notion directly.
 
 ### As a portal operator (workspace admin in Notion)
+
 - **US-4:** As an operator, I want to control portal access by adding or removing people on **`KlantV2`** for each task in Notion, so that I do not need a separate admin app.
 - **US-5:** As an operator, I want changes made in Notion to show up when guests log in or refresh, so that I can keep working in Notion as usual.
 
@@ -255,11 +257,11 @@ Omit `api/cron/` unless a future feature adds scheduled jobs; background work fo
 
 ## 10. Future Considerations
 
-1. **Notion webhooks** — Push or event-driven invalidation of cache when pages change, reducing reliance on refresh-only sync.  
-2. **Lightweight operator tools** — Optional read-only dashboard for sync status or health (still not a full replacement for Notion as source of truth for access).  
-3. **OAuth** — Optional Google or Microsoft sign-in alongside magic link, with the same email → person / **`KlantV2`** resolution.  
-4. **Audit trail** — Log of portal logins and edits for compliance or support.  
-5. **Stronger branding** — Design system, custom domain, and white-label polish beyond MVP styling.  
+1. **Notion webhooks** — Push or event-driven invalidation of cache when pages change, reducing reliance on refresh-only sync.
+2. **Lightweight operator tools** — Optional read-only dashboard for sync status or health (still not a full replacement for Notion as source of truth for access).
+3. **OAuth** — Optional Google or Microsoft sign-in alongside magic link, with the same email → person / **`KlantV2`** resolution.
+4. **Audit trail** — Log of portal logins and edits for compliance or support.
+5. **Stronger branding** — Design system, custom domain, and white-label polish beyond MVP styling.
 6. **Additional databases** — If the operator later adds more Notion databases, define how they map to the same **email + `KlantV2`** model and RLS.
 
 ---
@@ -268,10 +270,10 @@ Omit `api/cron/` unless a future feature adds scheduled jobs; background work fo
 
 The **Notion Portals** codebase is the reference implementation for:
 
-- Next.js App Router with Supabase Auth  
-- Supabase as a performance cache for Notion-backed reads  
-- RLS to enforce data scope at the database layer  
-- Sync triggered on login and page refresh  
+- Next.js App Router with Supabase Auth
+- Supabase as a performance cache for Notion-backed reads
+- RLS to enforce data scope at the database layer
+- Sync triggered on login and page refresh
 - Centralized Notion client, sync helpers, and permission checks under `lib/`
 
 **Custom Customer Portal** reuses that stack where useful but replaces organization-scoped membership with **email → Notion person → Tasks where that person appears in `KlantV2`**. It targets **one Vercel deployment** (not a reusable multi-customer product). Editing is **all surfaced fields** (§4, §6), with **last-write-wins** (FR-12), not role-based column matrices from multi-org products.
