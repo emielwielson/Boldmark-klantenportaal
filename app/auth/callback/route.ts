@@ -51,19 +51,7 @@ export async function GET(request: Request) {
   // (mitigates timing issues with deferred auth events in some server runtimes).
   await new Promise((resolve) => setTimeout(resolve, 0));
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (user?.email) {
-    const { syncTasksForUser } = await import("@/lib/sync/tasks-sync");
-    await syncTasksForUser({
-      userId: user.id,
-      email: user.email,
-    }).catch((err) => {
-      console.error("[auth/callback] syncTasksForUser:", err);
-    });
-  }
+  // Do not run Notion sync here — it blocks the redirect. Sync runs on `/dashboard` (FR-14).
 
   const redirectTo = new URL(nextPath, url.origin);
   return NextResponse.redirect(redirectTo);

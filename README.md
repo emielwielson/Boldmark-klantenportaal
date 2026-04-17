@@ -87,7 +87,7 @@ SQL migrations live in [`supabase/migrations/`](supabase/migrations/). The first
 
 **Sync pipeline and edits (task 5)**
 
-- **Pull:** [`lib/sync/tasks-sync.ts`](lib/sync/tasks-sync.ts) runs on magic-link callback and on each dashboard load: resolve email → Notion person ids, query in-scope tasks, **upsert** [`notion_sync_cache`](supabase/migrations/20250417120000_cache_and_rls.sql), **delete** cache rows that are no longer returned (staleness / removed from `KlantV2`).
+- **Pull:** [`lib/sync/tasks-sync.ts`](lib/sync/tasks-sync.ts) runs on each **dashboard** load (magic-link callback redirects immediately so login stays fast). It resolves email → Notion person ids (or reuses existing [`user_person_scope`](supabase/migrations/20250417120000_cache_and_rls.sql) rows), queries in-scope tasks, **upserts** [`notion_sync_cache`](supabase/migrations/20250417120000_cache_and_rls.sql), and **deletes** stale cache rows.
 - **Errors:** If Notion fails, the dashboard shows the error and, when possible, the last known sync time from cache (FR-26). If the user cannot be matched to a Notion person, a clear “no access” message is shown (FR-25).
 - **Push:** Server Action [`app/dashboard/actions.ts`](app/dashboard/actions.ts) (`updateTaskProperty`) checks scope via [`lib/permissions/task-scope.ts`](lib/permissions/task-scope.ts), updates the Notion page, then refreshes the cache row. **Last-write-wins** (FR-12): the latest successful write to Notion wins; there is no merge. Property payloads are built in [`lib/notion/map-task-to-notion-properties.ts`](lib/notion/map-task-to-notion-properties.ts) from cached property types.
 

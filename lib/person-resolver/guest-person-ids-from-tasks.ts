@@ -22,15 +22,49 @@ function isPersonUser(
   return u.type === "person";
 }
 
+/** Parallel batch size for `users.retrieve` (stay under Notion rate limits). */
+const RETRIEVE_CONCURRENCY = 8;
+
+async function retrieveFirstMatchingPersonId(
+  notion: Client,
+  candidateIds: string[],
+  targetEmail: string,
+  attemptedIds: Set<string>,
+): Promise<string | null> {
+  const toTry = candidateIds.filter((id) => {
+    if (attemptedIds.has(id)) return false;
+    attemptedIds.add(id);
+    return true;
+  });
+
+  for (let i = 0; i < toTry.length; i += RETRIEVE_CONCURRENCY) {
+    const chunk = toTry.slice(i, i + RETRIEVE_CONCURRENCY);
+    const results = await Promise.all(
+      chunk.map(async (userId) => {
+        try {
+          const user = await notion.users.retrieve({ user_id: userId });
+          if (!isPersonUser(user)) return null;
+          const personEmail = user.person?.email;
+          if (personEmail && normalizeEmail(personEmail) === targetEmail) {
+            return user.id;
+          }
+          return null;
+        } catch {
+          return null;
+        }
+      }),
+    );
+    const hit = results.find((x) => x !== null);
+    if (hit) return hit;
+  }
+
+  return null;
+}
+
 /**
  * Guests invited only to specific pages often do not appear in `users.list` with a matchable
- * email. This path paginates **all** task rows in the Tasks database (no people filter),
- * collects every Notion user id on `KlantV2`, then calls `users.retrieve` until `person.email`
- * matches the login email.
- *
- * **Cost:** One full database scan per resolution when the workspace list path is empty; one
- * retrieve per distinct person id on KlantV2 across those pages. Acceptable for typical DB sizes;
- * revisit if the Tasks DB grows very large (caching, incremental strategies — task 7).
+ * email. This path walks task pages in order; on each page it resolves `KlantV2` user ids in
+ * small parallel batches and **stops at the first** email match (no full-DB user retrieve pass).
  */
 export async function findGuestPersonIdsByEmailViaTaskPages(
   notion: Client,
@@ -48,7 +82,7 @@ export async function findGuestPersonIdsByEmailViaTaskPages(
     tasksDbOrDataSourceId,
   );
 
-  const candidateIds = new Set<string>();
+  const attemptedIds = new Set<string>();
   let cursor: string | undefined;
 
   do {
@@ -60,33 +94,26 @@ export async function findGuestPersonIdsByEmailViaTaskPages(
     });
 
     for (const row of res.results) {
-      if (row.object === "page" && "properties" in row) {
-        for (const id of extractKlantV2PersonIds(
-          row as PageObjectResponse,
-          klantV2Property,
-        )) {
-          candidateIds.add(id);
-        }
+      if (row.object !== "page" || !("properties" in row)) continue;
+
+      const idsOnPage = extractKlantV2PersonIds(
+        row as PageObjectResponse,
+        klantV2Property,
+      );
+
+      const match = await retrieveFirstMatchingPersonId(
+        notion,
+        idsOnPage,
+        target,
+        attemptedIds,
+      );
+      if (match) {
+        return [match];
       }
     }
 
     cursor = res.has_more ? (res.next_cursor ?? undefined) : undefined;
   } while (cursor);
 
-  const matches: string[] = [];
-
-  for (const userId of candidateIds) {
-    try {
-      const user = await notion.users.retrieve({ user_id: userId });
-      if (!isPersonUser(user)) continue;
-      const personEmail = user.person?.email;
-      if (personEmail && normalizeEmail(personEmail) === target) {
-        matches.push(user.id);
-      }
-    } catch {
-      // Missing user access or deleted id — skip
-    }
-  }
-
-  return matches;
+  return [];
 }

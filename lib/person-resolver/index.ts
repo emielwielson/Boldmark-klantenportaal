@@ -20,8 +20,8 @@ function isPersonUser(
  * Resolves Notion person user ids for the login email:
  *
  * 1. **Workspace list:** paginate `users.list` and match `person.email` (case-insensitive).
- * 2. **Guests:** if that yields no ids, scan all pages in the Tasks database, collect every
- *    `KlantV2` person user id, and `users.retrieve` each until `person.email` matches (see
+ * 2. **Guests:** if that yields no ids, walk task pages and batch-`users.retrieve` `KlantV2`
+ *    ids until `person.email` matches — **stops at first match** (see
  *    `guest-person-ids-from-tasks.ts`).
  */
 export async function findNotionPersonIdsByEmail(
@@ -87,6 +87,8 @@ export type ResolveAndPersistResult = {
   notionPersonIds: string[];
   /** True when NOTION_TOKEN was missing — no Notion or DB calls were made. */
   skipped: boolean;
+  /** True when ids came from existing `user_person_scope` rows (no Notion user resolution). */
+  scopeFromDatabase?: boolean;
 };
 
 /**
@@ -101,10 +103,28 @@ export async function resolveAndPersistPersonScope(opts: {
     return { notionPersonIds: [], skipped: true };
   }
 
+  const supabase = await createSupabaseServerClient();
+
+  const { data: existingScope, error: scopeErr } = await supabase
+    .from("user_person_scope")
+    .select("notion_person_id")
+    .eq("user_id", opts.userId);
+
+  if (scopeErr) {
+    throw new Error(`user_person_scope select: ${scopeErr.message}`);
+  }
+
+  if (existingScope?.length) {
+    return {
+      notionPersonIds: existingScope.map((r) => r.notion_person_id),
+      skipped: false,
+      scopeFromDatabase: true,
+    };
+  }
+
   const notion = getNotionClient();
   const notionPersonIds = await findNotionPersonIdsByEmail(notion, opts.email);
 
-  const supabase = await createSupabaseServerClient();
   await persistUserPersonScope(supabase, opts.userId, notionPersonIds);
 
   return { notionPersonIds, skipped: false };
