@@ -1,23 +1,30 @@
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 export const dynamic = "force-dynamic";
 
+function safeNextPath(next: string | null): string {
+  if (!next || !next.startsWith("/") || next.startsWith("//")) {
+    return "/dashboard";
+  }
+  return next;
+}
+
 /**
- * PKCE magic-link return URL. Session cookies must be written on this response;
- * keep cookie handling inline so Route Handler + redirect stay in one flow.
+ * PKCE magic-link return URL. Bind cookie writes to the same NextResponse we
+ * return (avoid cookies() + a separate NextResponse.redirect losing Set-Cookie).
  */
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  const nextPath = url.searchParams.get("next") ?? "/dashboard";
+  const nextPath = safeNextPath(url.searchParams.get("next"));
 
   if (!code) {
     return NextResponse.redirect(new URL("/login?error=auth", url.origin));
   }
 
-  const cookieStore = await cookies();
+  const redirectTo = new URL(nextPath, url.origin);
+  const response = NextResponse.redirect(redirectTo);
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -25,15 +32,18 @@ export async function GET(request: Request) {
     {
       cookies: {
         getAll() {
-          return cookieStore.getAll();
+          return request.cookies.getAll();
         },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            );
-          } catch {
-            // ignore
+        setAll(cookiesToSet, headers) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options),
+          );
+          if (headers) {
+            for (const [key, value] of Object.entries(headers)) {
+              if (typeof value === "string") {
+                response.headers.set(key, value);
+              }
+            }
           }
         },
       },
@@ -47,12 +57,5 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL("/login?error=auth", url.origin));
   }
 
-  // Allow cookie writes from the auth client to flush before sending the redirect
-  // (mitigates timing issues with deferred auth events in some server runtimes).
-  await new Promise((resolve) => setTimeout(resolve, 0));
-
-  // Do not run Notion sync here — it blocks the redirect. Sync runs on `/dashboard` (FR-14).
-
-  const redirectTo = new URL(nextPath, url.origin);
-  return NextResponse.redirect(redirectTo);
+  return response;
 }

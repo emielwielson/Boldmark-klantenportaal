@@ -6,6 +6,13 @@ import { NextResponse, type NextRequest } from "next/server";
  * Forwards Set-Cookie from the refreshed session onto redirect responses.
  */
 export async function updateSession(request: NextRequest) {
+  // Let `/auth/callback` pass through without touching Supabase here. Otherwise
+  // `getUser()` can run before `exchangeCodeForSession`, and cookie handling
+  // can interfere with the PKCE code-verifier cookie that must reach the Route Handler.
+  if (request.nextUrl.pathname.startsWith("/auth/callback")) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
