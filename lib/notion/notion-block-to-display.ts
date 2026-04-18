@@ -11,6 +11,34 @@ function calloutIconEmoji(
   return null;
 }
 
+function notionImageDisplayUrl(
+  image: Extract<BlockObjectResponse, { type: "image" }>["image"],
+): string | null {
+  if (image.type === "external") {
+    const raw = image.external.url;
+    if (typeof raw !== "string" || !raw) return null;
+    try {
+      const u = new URL(raw);
+      if (u.protocol !== "https:" && u.protocol !== "http:") return null;
+      return u.href;
+    } catch {
+      return null;
+    }
+  }
+  if (image.type === "file") {
+    const raw = image.file.url;
+    if (typeof raw !== "string" || !raw) return null;
+    try {
+      const u = new URL(raw);
+      if (u.protocol !== "https:" && u.protocol !== "http:") return null;
+      return u.href;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
 /**
  * Maps a single Notion block to a portal display row (plain text / simple structure).
  * Returns `null` to omit blocks we cannot render meaningfully (e.g. Notion buttons).
@@ -105,6 +133,19 @@ export function mapNotionBlockToDisplay(
         text: richTextToPlain(block.toggle.rich_text),
         depth,
       };
+    case "image": {
+      const url = notionImageDisplayUrl(block.image);
+      if (!url) {
+        return { kind: "unsupported", notionType: "image", depth };
+      }
+      const cap = richTextToPlain(block.image.caption);
+      return {
+        kind: "image",
+        url,
+        caption: cap || null,
+        depth,
+      };
+    }
     case "template":
       return {
         kind: "paragraph",

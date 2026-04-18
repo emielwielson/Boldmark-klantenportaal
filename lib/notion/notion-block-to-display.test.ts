@@ -42,4 +42,57 @@ describe("mapNotionBlockToDisplay", () => {
       depth: 1,
     });
   });
+
+  it("maps image (external) with caption", () => {
+    const block = {
+      type: "image",
+      image: {
+        type: "external",
+        external: { url: "https://example.com/a.png" },
+        caption: [{ plain_text: "Alt text", type: "text" }],
+      },
+    } as unknown as BlockObjectResponse;
+    expect(mapNotionBlockToDisplay(block, 0)).toEqual({
+      kind: "image",
+      url: "https://example.com/a.png",
+      caption: "Alt text",
+      depth: 0,
+    });
+  });
+
+  it("maps image (hosted file) without caption", () => {
+    const block = {
+      type: "image",
+      image: {
+        type: "file",
+        file: {
+          url: "https://prod-files-secure.s3.us-west-2.amazonaws.com/x/y/z.png",
+          expiry_time: "2099-01-01T00:00:00.000Z",
+        },
+        caption: [],
+      },
+    } as unknown as BlockObjectResponse;
+    expect(mapNotionBlockToDisplay(block, 2)).toEqual({
+      kind: "image",
+      url: "https://prod-files-secure.s3.us-west-2.amazonaws.com/x/y/z.png",
+      caption: null,
+      depth: 2,
+    });
+  });
+
+  it("falls back to unsupported when image URL is missing", () => {
+    const block = {
+      type: "image",
+      image: {
+        type: "external",
+        external: { url: "" },
+        caption: [],
+      },
+    } as unknown as BlockObjectResponse;
+    expect(mapNotionBlockToDisplay(block, 0)).toEqual({
+      kind: "unsupported",
+      notionType: "image",
+      depth: 0,
+    });
+  });
 });

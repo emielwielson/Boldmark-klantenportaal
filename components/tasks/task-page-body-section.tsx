@@ -160,6 +160,24 @@ function BlockLine({
           <span className="min-w-0 flex-1">{block.text || "—"}</span>
         </div>
       );
+    case "image":
+      return (
+        <figure className="my-1" style={depthPad}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- Notion image URLs are arbitrary (external + S3); next/image remotePatterns would be incomplete */}
+          <img
+            src={block.url}
+            alt={block.caption ?? ""}
+            className="max-h-[min(28rem,70vh)] w-full rounded-md border border-task-border bg-task-field/30 object-contain"
+            loading="lazy"
+            decoding="async"
+          />
+          {block.caption ? (
+            <figcaption className="mt-1.5 text-[0.8125rem] leading-snug text-task-ink/65">
+              {block.caption}
+            </figcaption>
+          ) : null}
+        </figure>
+      );
     case "unsupported":
       return (
         <p

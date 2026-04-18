@@ -19,6 +19,13 @@ export type TaskPageDisplayBlock =
   | { kind: "divider"; depth: number }
   | { kind: "code"; text: string; language?: string; depth: number }
   | { kind: "toggle"; text: string; depth: number }
+  | {
+      kind: "image";
+      /** HTTPS URL from Notion (`external` or expiring hosted `file`) */
+      url: string;
+      caption: string | null;
+      depth: number;
+    }
   | { kind: "unsupported"; notionType: string; depth: number };
 
 export type TaskPageCommentDTO = {
