@@ -3,13 +3,26 @@ import type { BlockObjectResponse } from "@notionhq/client";
 import { richTextToPlain } from "@/lib/notion/notion-rich-text";
 import type { TaskPageDisplayBlock } from "@/lib/notion/task-page-display";
 
+function calloutIconEmoji(
+  icon: Extract<BlockObjectResponse, { type: "callout" }>["callout"]["icon"],
+): string | null {
+  if (!icon) return null;
+  if (icon.type === "emoji") return icon.emoji ?? null;
+  return null;
+}
+
 /**
  * Maps a single Notion block to a portal display row (plain text / simple structure).
+ * Returns `null` to omit blocks we cannot render meaningfully (e.g. Notion buttons).
  */
 export function mapNotionBlockToDisplay(
   block: BlockObjectResponse,
   depth: number,
-): TaskPageDisplayBlock {
+): TaskPageDisplayBlock | null {
+  if ((block as { type: string }).type === "button") {
+    return null;
+  }
+
   switch (block.type) {
     case "paragraph":
       return {
@@ -74,6 +87,7 @@ export function mapNotionBlockToDisplay(
       return {
         kind: "callout",
         text: richTextToPlain(block.callout.rich_text),
+        iconEmoji: calloutIconEmoji(block.callout.icon),
         depth,
       };
     case "divider":
@@ -102,6 +116,9 @@ export function mapNotionBlockToDisplay(
     case "child_database":
       return { kind: "unsupported", notionType: "child_database", depth };
     case "unsupported":
+      if (block.unsupported.block_type === "button") {
+        return null;
+      }
       return {
         kind: "unsupported",
         notionType: block.unsupported.block_type,

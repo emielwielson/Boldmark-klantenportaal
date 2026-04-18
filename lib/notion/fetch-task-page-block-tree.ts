@@ -66,7 +66,10 @@ export async function fetchTaskPageBodyContent(
         truncated = true;
         return;
       }
-      blocks.push(mapNotionBlockToDisplay(block, depth));
+      const mapped = mapNotionBlockToDisplay(block, depth);
+      if (mapped !== null) {
+        blocks.push(mapped);
+      }
       const skipNested =
         shouldSkipChildTraversal(block) ||
         !("has_children" in block && block.has_children);

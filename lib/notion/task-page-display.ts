@@ -9,7 +9,13 @@ export type TaskPageDisplayBlock =
   | { kind: "numbered"; text: string; depth: number }
   | { kind: "todo"; text: string; checked: boolean; depth: number }
   | { kind: "quote"; text: string; depth: number }
-  | { kind: "callout"; text: string; depth: number }
+  | {
+      kind: "callout";
+      text: string;
+      /** Notion callout emoji icon when `type === "emoji"` */
+      iconEmoji: string | null;
+      depth: number;
+    }
   | { kind: "divider"; depth: number }
   | { kind: "code"; text: string; language?: string; depth: number }
   | { kind: "toggle"; text: string; depth: number }
