@@ -16,6 +16,7 @@ import {
   getPortalOrderedPropertyKeys,
   shouldShowPropertyEditor,
 } from "@/lib/notion/portal-task-properties";
+import { TaskStatusPill, TaskStatusPillPicker } from "@/components/tasks/task-status-pill";
 import { InlineFieldError } from "@/components/ui/InlineFieldError";
 import { Spinner } from "@/components/ui/Spinner";
 import { useRouter } from "next/navigation";
@@ -143,14 +144,22 @@ function PropertyField({
     const hint = klant
       ? "Toegewezen via Klant — beheer in Notion."
       : "Alleen in Notion te wijzigen.";
+    const preview =
+      type === "status" ? (
+        <TaskStatusPill
+          name={String(cachedPropertyToPlainValue(snapshot) ?? "")}
+        />
+      ) : (
+        <span className="whitespace-pre-wrap break-words text-sm text-ink/85">
+          {formatCachedPropertyPreview(snapshot)}
+        </span>
+      );
     return (
       <div className="min-w-0">
         <p className="text-xs font-medium uppercase tracking-wide text-ink/45">
           {label}
         </p>
-        <p className="mt-1.5 whitespace-pre-wrap break-words text-sm text-ink/85">
-          {formatCachedPropertyPreview(snapshot)}
-        </p>
+        <div className="mt-1.5">{preview}</div>
         <p className="mt-1 text-xs text-ink/50">{hint}</p>
       </div>
     );
@@ -265,23 +274,14 @@ function EditableControl({
     const names = mergeStatusOptionNames(schemaNames, snapshot);
     const val = typeof initial === "string" ? initial : "";
     return (
-      <div className="flex flex-wrap items-center gap-2">
-        <select
-          className="min-h-[44px] w-full max-w-md rounded-md border border-black/[0.12] bg-white px-3 text-sm text-ink shadow-sm"
+      <div className="flex flex-wrap items-start gap-2">
+        <TaskStatusPillPicker
+          names={names}
           value={val}
-          disabled={saving}
-          onChange={(e) =>
-            void onSave(propKey, e.target.value === "" ? null : e.target.value)
-          }
-        >
-          <option value="">—</option>
-          {names.map((name) => (
-            <option key={name} value={name}>
-              {name}
-            </option>
-          ))}
-        </select>
-        {saving ? <Spinner className="size-4" /> : null}
+          saving={saving}
+          onSelect={(v) => void onSave(propKey, v)}
+        />
+        {saving ? <Spinner className="size-4 self-center" /> : null}
       </div>
     );
   }
