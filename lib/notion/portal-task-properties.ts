@@ -15,12 +15,12 @@ export type PortalTaskPropertyRow = {
 
 export const PORTAL_TASK_PROPERTIES: PortalTaskPropertyRow[] = [
   { title: "Opmerking", editable: true },
-  { title: "Categorie", editable: false },
   { title: "Status", editable: true },
+  { title: "Categorie", editable: false },
   { title: "Kanaal", editable: false },
   { title: "Productiedatum", editable: false },
-  { title: "Publicatiedatum", editable: false },
   { title: "Klant V2", editable: false },
+  { title: "Publicatiedatum", editable: false },
   { title: "Toegewezen aan", editable: false },
 ];
 

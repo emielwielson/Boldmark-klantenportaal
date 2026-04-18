@@ -16,8 +16,8 @@ describe("getPortalOrderedPropertyKeys", () => {
     };
     expect(getPortalOrderedPropertyKeys(properties)).toEqual([
       "Opmerking",
-      "Categorie",
       "Status",
+      "Categorie",
     ]);
   });
 
