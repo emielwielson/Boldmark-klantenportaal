@@ -85,9 +85,9 @@ export function TaskRowEditor({
   }
 
   return (
-    <article className="rounded-lg border border-border bg-surface shadow-sm">
-      <div className="border-b border-border px-4 py-3 md:px-5">
-        <p className="text-xs text-content/55">
+    <article className="rounded-lg border border-task-border bg-task-pane text-task-ink shadow-sm">
+      <div className="border-b border-task-border px-4 py-3 md:px-5">
+        <p className="text-xs text-task-ink/60">
           Laatst gesynchroniseerd: {formatNlShort(task.last_synced_at)}
         </p>
       </div>
@@ -152,26 +152,27 @@ function PropertyField({
       type === "status" ? (
         <TaskStatusPill
           name={String(cachedPropertyToPlainValue(snapshot) ?? "")}
+          emptyClassName="text-task-ink/45"
         />
       ) : (
-        <span className="whitespace-pre-wrap break-words text-sm text-content/85">
+        <span className="whitespace-pre-wrap break-words text-sm text-task-ink">
           {formatCachedPropertyPreview(snapshot)}
         </span>
       );
     return (
       <div className="min-w-0">
-        <p className="text-xs font-medium uppercase tracking-wide text-content/45">
+        <p className="text-xs font-medium uppercase tracking-wide text-task-ink/75">
           {label}
         </p>
         <div className="mt-1.5">{preview}</div>
-        <p className="mt-1 text-xs text-content/50">{hint}</p>
+        <p className="mt-1 text-xs text-task-ink/65">{hint}</p>
       </div>
     );
   }
 
   return (
     <div className="min-w-0">
-      <label className="text-xs font-medium uppercase tracking-wide text-content/45">
+      <label className="text-xs font-medium uppercase tracking-wide text-task-ink/75">
         {label}
       </label>
       <div className="mt-1.5">
@@ -227,7 +228,7 @@ function EditableControl({
   const [dateDraft, setDateDraft] = useState(() => dateStartForInput(snapshot));
 
   const btnClass =
-    "inline-flex min-h-[44px] items-center justify-center gap-2 rounded-md border border-border bg-field px-3 text-sm font-medium text-content hover:bg-content/[0.07] disabled:opacity-50";
+    "inline-flex min-h-[44px] items-center justify-center gap-2 rounded-md border border-task-border bg-task-field px-3 text-sm font-medium text-task-ink shadow-sm hover:bg-task-ink/[0.04] disabled:opacity-50";
 
   if (type === "checkbox") {
     const checked = Boolean(initial);
@@ -235,12 +236,14 @@ function EditableControl({
       <label className="inline-flex min-h-[44px] cursor-pointer items-center gap-2">
         <input
           type="checkbox"
-          className="size-4 rounded border-content/25"
+          className="size-4 rounded border-task-ink/30"
           checked={checked}
           disabled={saving}
           onChange={(e) => void onSave(propKey, e.target.checked)}
         />
-        {saving ? <Spinner className="size-4" /> : null}
+        {saving ? (
+          <Spinner className="size-4 border-task-ink/20 border-t-task-ink/55" />
+        ) : null}
       </label>
     );
   }
@@ -253,7 +256,7 @@ function EditableControl({
     return (
       <div className="flex flex-wrap items-center gap-2">
         <select
-          className="min-h-[44px] w-full max-w-md rounded-md border border-border bg-field px-3 text-sm text-content shadow-sm"
+          className="min-h-[44px] w-full max-w-md rounded-md border border-task-border bg-task-field px-3 text-sm text-task-ink shadow-sm"
           value={val}
           disabled={saving}
           onChange={(e) =>
@@ -267,7 +270,9 @@ function EditableControl({
             </option>
           ))}
         </select>
-        {saving ? <Spinner className="size-4" /> : null}
+        {saving ? (
+          <Spinner className="size-4 border-task-ink/20 border-t-task-ink/55" />
+        ) : null}
       </div>
     );
   }
@@ -280,11 +285,11 @@ function EditableControl({
     const groups = groupStatusNamesForSelect(names);
     const chip = val
       ? getTaskStatusPillStyle(val).chip
-      : "border-border bg-field text-content";
+      : "border-task-border bg-task-field text-task-ink";
     return (
       <div className="flex flex-wrap items-center gap-2">
         <select
-          className={`min-h-[44px] w-full max-w-md rounded-md border border-border px-3 py-2 text-sm shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent/60 ${chip}`}
+          className={`min-h-[44px] w-full max-w-md rounded-md border border-task-border px-3 py-2 text-sm shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent/60 ${chip}`}
           value={val}
           disabled={saving}
           onChange={(e) =>
@@ -302,7 +307,9 @@ function EditableControl({
             </optgroup>
           ))}
         </select>
-        {saving ? <Spinner className="size-4" /> : null}
+        {saving ? (
+          <Spinner className="size-4 border-task-ink/20 border-t-task-ink/55" />
+        ) : null}
       </div>
     );
   }
@@ -320,10 +327,10 @@ function EditableControl({
           const on = selected.has(name);
           return (
             <li key={name}>
-              <label className="flex min-h-[44px] cursor-pointer items-center gap-2 text-sm text-content">
+              <label className="flex min-h-[44px] cursor-pointer items-center gap-2 text-sm text-task-ink">
                 <input
                   type="checkbox"
-                  className="size-4 rounded border-content/25"
+                  className="size-4 rounded border-task-ink/30"
                   checked={on}
                   disabled={saving}
                   onChange={() => {
@@ -339,9 +346,11 @@ function EditableControl({
           );
         })}
         {union.length === 0 ? (
-          <p className="text-sm text-content/60">Geen waarden.</p>
+          <p className="text-sm text-task-ink/65">Geen waarden.</p>
         ) : null}
-        {saving ? <Spinner className="size-4" /> : null}
+        {saving ? (
+          <Spinner className="size-4 border-task-ink/20 border-t-task-ink/55" />
+        ) : null}
       </ul>
     );
   }
@@ -351,7 +360,7 @@ function EditableControl({
       <div className="flex flex-wrap items-end gap-2">
         <input
           type="number"
-          className="min-h-[44px] w-full max-w-md rounded-md border border-border bg-field px-3 text-sm text-content shadow-sm"
+          className="min-h-[44px] w-full max-w-md rounded-md border border-task-border bg-task-field px-3 text-sm text-task-ink shadow-sm"
           value={numDraft}
           disabled={saving}
           onChange={(e) => setNumDraft(e.target.value)}
@@ -370,7 +379,9 @@ function EditableControl({
             }
           }}
         >
-          {saving ? <Spinner className="size-4" /> : null}
+          {saving ? (
+            <Spinner className="size-4 border-task-ink/20 border-t-task-ink/55" />
+          ) : null}
           Opslaan
         </button>
       </div>
@@ -382,7 +393,7 @@ function EditableControl({
       <div className="flex flex-wrap items-end gap-2">
         <input
           type="date"
-          className="min-h-[44px] w-full max-w-md rounded-md border border-border bg-field px-3 text-sm text-content shadow-sm"
+          className="min-h-[44px] w-full max-w-md rounded-md border border-task-border bg-task-field px-3 text-sm text-task-ink shadow-sm"
           value={dateDraft}
           disabled={saving}
           onChange={(e) => setDateDraft(e.target.value)}
@@ -397,7 +408,9 @@ function EditableControl({
             else void onSave(propKey, plainDateFromInput(t));
           }}
         >
-          {saving ? <Spinner className="size-4" /> : null}
+          {saving ? (
+            <Spinner className="size-4 border-task-ink/20 border-t-task-ink/55" />
+          ) : null}
           Opslaan
         </button>
       </div>
@@ -410,7 +423,7 @@ function EditableControl({
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
         <input
           type={inputType}
-          className="min-h-[44px] w-full flex-1 rounded-md border border-border bg-field px-3 text-sm text-content shadow-sm"
+          className="min-h-[44px] w-full flex-1 rounded-md border border-task-border bg-task-field px-3 text-sm text-task-ink shadow-sm"
           value={textDraft}
           disabled={saving}
           onChange={(e) => setTextDraft(e.target.value)}
@@ -422,7 +435,9 @@ function EditableControl({
           disabled={saving}
           onClick={() => void onSave(propKey, textDraft)}
         >
-          {saving ? <Spinner className="size-4" /> : null}
+          {saving ? (
+            <Spinner className="size-4 border-task-ink/20 border-t-task-ink/55" />
+          ) : null}
           Opslaan
         </button>
       </div>
@@ -433,7 +448,7 @@ function EditableControl({
   return (
     <div className="space-y-2">
       <textarea
-        className="min-h-[88px] w-full rounded-md border border-border bg-field px-3 py-2 text-sm text-content shadow-sm"
+        className="min-h-[88px] w-full rounded-md border border-task-border bg-task-field px-3 py-2 text-sm text-task-ink shadow-sm"
         value={textDraft}
         disabled={saving}
         onChange={(e) => setTextDraft(e.target.value)}
@@ -445,7 +460,9 @@ function EditableControl({
         disabled={saving}
         onClick={() => void onSave(propKey, textDraft)}
       >
-        {saving ? <Spinner className="size-4" /> : null}
+        {saving ? (
+          <Spinner className="size-4 border-task-ink/20 border-t-task-ink/55" />
+        ) : null}
         Opslaan
       </button>
     </div>

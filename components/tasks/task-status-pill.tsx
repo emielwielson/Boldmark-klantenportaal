@@ -2,10 +2,18 @@
 
 import { getTaskStatusPillStyle } from "@/lib/notion/task-status-pill-styles";
 
-export function TaskStatusPill({ name }: { name: string }) {
+type TaskStatusPillProps = {
+  name: string;
+  /** Override classes for the empty placeholder (e.g. task pane contrast). */
+  emptyClassName?: string;
+};
+
+export function TaskStatusPill({ name, emptyClassName }: TaskStatusPillProps) {
   const t = name.trim();
   if (!t) {
-    return <span className="text-sm text-content/50">—</span>;
+    return (
+      <span className={`text-sm ${emptyClassName ?? "text-content/50"}`}>—</span>
+    );
   }
   const { dot, chip } = getTaskStatusPillStyle(t);
   return (
