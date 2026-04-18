@@ -10,7 +10,6 @@ import {
   mergeMultiSelectOptionNames,
   mergeSelectOptionNames,
   mergeStatusOptionNames,
-  notionPublicPageUrl,
   plainDateFromInput,
 } from "@/lib/notion/cached-property-display";
 import {
@@ -56,7 +55,6 @@ export function TaskRowEditor({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const keys = getPortalOrderedPropertyKeys(task.properties);
-  const notionUrl = notionPublicPageUrl(task.notion_page_id);
 
   async function saveField(propertyName: string, plainValue: unknown) {
     setSavingKey(propertyName);
@@ -83,18 +81,10 @@ export function TaskRowEditor({
 
   return (
     <article className="rounded-lg border border-black/[0.06] bg-white shadow-sm">
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-black/[0.06] px-4 py-3 md:px-5">
+      <div className="border-b border-black/[0.06] px-4 py-3 md:px-5">
         <p className="text-xs text-ink/55">
           Laatst gesynchroniseerd: {formatNlShort(task.last_synced_at)}
         </p>
-        <a
-          href={notionUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="min-h-[44px] shrink-0 rounded-md border border-black/[0.08] bg-page px-3 py-2 text-sm font-medium text-ink/90 underline-offset-2 hover:underline"
-        >
-          Open in Notion
-        </a>
       </div>
 
       <div className="grid gap-5 px-4 py-4 md:grid-cols-2 md:gap-6 md:px-5 md:py-5">
