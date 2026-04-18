@@ -2,11 +2,15 @@ import Link from "next/link";
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { DashboardLogoShell } from "@/components/layout/dashboard-logo-shell";
+import { TaskPageBodySection } from "@/components/tasks/task-page-body-section";
+import { TaskPageCommentsSection } from "@/components/tasks/task-page-comments-section";
 import { TaskRowEditor } from "@/components/tasks/task-row-editor";
 import type { CachedTaskRow } from "@/components/tasks/task-row-editor";
 import { AppBanner } from "@/components/ui/AppBanner";
 import { getNotionClient } from "@/lib/notion/client";
 import { isNotionConfigured } from "@/lib/notion/config";
+import { fetchTaskPageBodyContent } from "@/lib/notion/fetch-task-page-block-tree";
+import { fetchTaskPageComments } from "@/lib/notion/fetch-task-page-comments";
 import { fetchSelectLikeOptionNamesByPropertyId } from "@/lib/notion/data-source-select-options";
 import { getTitleFromProperties } from "@/lib/notion/cached-property-display";
 import { logPortalEvent } from "@/lib/observability/server-log";
@@ -128,6 +132,29 @@ export default async function TaskDetailPage({ params }: PageProps) {
     getTitleFromProperties(task.properties) ?? "Taak";
   const displayTitle = title.length > 80 ? `${title.slice(0, 80)}…` : title;
 
+  let commentsResult: Awaited<
+    ReturnType<typeof fetchTaskPageComments>
+  > | null = null;
+  let bodyResult: Awaited<
+    ReturnType<typeof fetchTaskPageBodyContent>
+  > | null = null;
+
+  if (isNotionConfigured()) {
+    try {
+      const notion = getNotionClient();
+      [commentsResult, bodyResult] = await Promise.all([
+        fetchTaskPageComments(notion, notionPageId),
+        fetchTaskPageBodyContent(notion, notionPageId),
+      ]);
+    } catch (e) {
+      logPortalEvent("warn", {
+        event: "task_page_notion_fetch_failed",
+        notionPageId,
+        message: e instanceof Error ? e.message : String(e),
+      });
+    }
+  }
+
   return (
     <DashboardLogoShell>
       <div className="flex flex-1 flex-col px-4 py-10">
@@ -166,6 +193,9 @@ export default async function TaskDetailPage({ params }: PageProps) {
           task={task}
           propertyOptionsById={propertyOptionsById}
         />
+
+        <TaskPageCommentsSection result={commentsResult} />
+        <TaskPageBodySection result={bodyResult} />
         </div>
       </div>
     </DashboardLogoShell>

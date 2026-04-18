@@ -36,6 +36,8 @@ Next.js customer portal for Notion-backed tasks (see [`internal docs/prd-custom-
 
    **Server-only Notion (FR-7, FR-20):** `NOTION_TOKEN` and `NOTION_TASKS_DATABASE_ID` must never be prefixed with `NEXT_PUBLIC_` or imported from Client Components. All Notion reads and writes go through server code ([`lib/notion/client.ts`](lib/notion/client.ts), [`lib/notion/tasks.ts`](lib/notion/tasks.ts), [`app/dashboard/actions.ts`](app/dashboard/actions.ts)) using the configured Tasks database id — users cannot supply arbitrary Notion database IDs.
 
+   **Task page — comments & body:** On `/dashboard/task/[id]`, the app loads **open (unresolved) comments** and **page body blocks** from Notion (see [`fetch-task-page-comments.ts`](lib/notion/fetch-task-page-comments.ts), [`fetch-task-page-block-tree.ts`](lib/notion/fetch-task-page-block-tree.ts)). In your [Notion integration](https://www.notion.so/my-integrations) capabilities, enable **read comments** if you want the Reacties section to work; otherwise it may show a permission message. Resolved comment threads are **not** exposed by the Notion API.
+
 3. Run the development server:
 
    ```bash

@@ -14,7 +14,7 @@ describe("matchPagePropertyKey", () => {
     const p = props({
       Name: {
         type: "title",
-        title: [{ type: "text", plain_text: "Hi", text: { content: "Hi" } }],
+        title: [],
         id: "x",
       },
     });
