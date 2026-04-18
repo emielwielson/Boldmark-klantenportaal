@@ -10,7 +10,10 @@ Derived from `prd-custom-customer-portal.md`.
 - `app/layout.tsx` — Root layout, fonts, global Notion-like styles.
 - `app/login/page.tsx` — Email + magic link UI (FR-21).
 - `app/auth/callback/route.ts` — Supabase Auth callback handler if used.
-- `app/dashboard/page.tsx` — Task list / dashboard shell (FR-22).
+- `app/dashboard/page.tsx` — Dashboard shell + monthly calendar (FR-22).
+- `app/dashboard/task/[notionPageId]/page.tsx` — Single-task view (same fields as editor).
+- `components/tasks/dashboard-calendar-shell.tsx` — Month grid + links by Publicatiedatum.
+- `lib/notion/task-calendar-date.ts` — Publicatiedatum → calendar day key.
 - `app/dashboard/loading.tsx` — Loading UI for dashboard segment.
 - `app/api/...` or `app/**/actions.ts` — Server Actions / route handlers only path to Notion (FR-11).
 - `lib/supabase/client.ts` — Browser Supabase client for auth.
@@ -24,7 +27,6 @@ Derived from `prd-custom-customer-portal.md`.
 - `lib/permissions/task-scope.ts` — Server-side check: task ID in user scope (FR-18, FR-19).
 - `types/notion-task.ts` — TypeScript models for cached task rows and API payloads.
 - `supabase/migrations/*.sql` — `portal_config`, `user_person_scope`, `notion_sync_cache` (or equivalent), RLS policies (FR-17).
-- `components/tasks/TaskList.tsx` — Renders authorized tasks (Notion-like table/cards).
 - `components/tasks/TaskRowEditor.tsx` — Editable fields for one task; submit via Server Action.
 - `components/ui/AppBanner.tsx`, `Spinner.tsx`, `InlineFieldError.tsx` — Sync/mutation feedback (FR-23, FR-24).
 - `lib/notion/cached-property-display.ts` — Cached Notion property JSON → labels, plain edit values, Notion URL helper (FR-10).

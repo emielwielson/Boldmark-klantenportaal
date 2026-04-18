@@ -1,10 +1,20 @@
+import Link from "next/link";
+
 import { SignOutButton } from "@/components/auth/sign-out-button";
-import { DashboardCalendarShell } from "@/components/tasks/dashboard-calendar-shell";
+import { TaskRowEditor } from "@/components/tasks/task-row-editor";
 import type { CachedTaskRow } from "@/components/tasks/task-row-editor";
 import { AppBanner } from "@/components/ui/AppBanner";
+import { getNotionClient } from "@/lib/notion/client";
+import {
+  getKlantV2PropertyName,
+  isNotionConfigured,
+} from "@/lib/notion/config";
+import { fetchSelectLikeOptionNamesByPropertyId } from "@/lib/notion/data-source-select-options";
+import { getTitleFromProperties } from "@/lib/notion/cached-property-display";
+import { logPortalEvent } from "@/lib/observability/server-log";
 import { syncTasksForUser } from "@/lib/sync/tasks-sync";
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 function formatNlTimestamp(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -18,7 +28,16 @@ function formatNlTimestamp(iso: string | null | undefined): string {
   }
 }
 
-export default async function DashboardPage() {
+type PageProps = {
+  params: Promise<{ notionPageId: string }>;
+};
+
+export default async function TaskDetailPage({ params }: PageProps) {
+  const { notionPageId } = await params;
+  if (!notionPageId?.trim()) {
+    notFound();
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -86,34 +105,53 @@ export default async function DashboardPage() {
   const blockTaskUi =
     syncBanner?.variant === "denied" || syncBanner?.variant === "config";
 
-  let cacheError: string | null = null;
-  let cachedTasks: CachedTaskRow[] = [];
+  const klantV2PropertyName = getKlantV2PropertyName();
 
-  if (!blockTaskUi) {
-    const { data, error } = await supabase
-      .from("notion_sync_cache")
-      .select("notion_page_id, properties, last_synced_at")
-      .order("last_synced_at", { ascending: false });
-
-    if (error) {
-      cacheError = error.message;
-    } else {
-      cachedTasks = (data ?? []) as CachedTaskRow[];
+  let propertyOptionsById: Record<string, string[]> = {};
+  if (!blockTaskUi && isNotionConfigured()) {
+    try {
+      propertyOptionsById = await fetchSelectLikeOptionNamesByPropertyId(
+        getNotionClient(),
+      );
+    } catch (e) {
+      logPortalEvent("warn", {
+        event: "data_source_select_options_failed",
+        message: e instanceof Error ? e.message : String(e),
+      });
     }
   }
+
+  const { data: row, error: rowErr } = await supabase
+    .from("notion_sync_cache")
+    .select("notion_page_id, properties, last_synced_at")
+    .eq("notion_page_id", notionPageId)
+    .maybeSingle();
+
+  if (rowErr || !row) {
+    notFound();
+  }
+
+  const task = row as CachedTaskRow;
+  const title =
+    getTitleFromProperties(task.properties) ?? "Taak";
+  const displayTitle = title.length > 80 ? `${title.slice(0, 80)}…` : title;
 
   return (
     <div className="flex flex-1 flex-col px-4 py-10">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
         <header className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-semibold tracking-tight text-ink">
-              Dashboard
-            </h1>
-            <p className="mt-1 text-sm text-ink/70">
-              Ingelogd als{" "}
-              <span className="font-medium text-ink">{user.email}</span>
+          <div className="min-w-0">
+            <p className="text-sm text-ink/70">
+              <Link
+                href="/dashboard"
+                className="font-medium text-ink/80 underline-offset-2 hover:underline"
+              >
+                ← Dashboard
+              </Link>
             </p>
+            <h1 className="mt-2 text-xl font-semibold tracking-tight text-ink">
+              {displayTitle}
+            </h1>
             {syncBanner?.lastSyncedLabel && syncBanner.variant !== "denied" ? (
               <p className="mt-2 text-xs text-ink/55">
                 Laatst bijgewerkt: {syncBanner.lastSyncedLabel}
@@ -131,17 +169,11 @@ export default async function DashboardPage() {
           />
         ) : null}
 
-        {cacheError ? (
-          <AppBanner
-            variant="warn"
-            title="Cache kon niet geladen worden"
-            detail={cacheError}
-          />
-        ) : null}
-
-        {!blockTaskUi && !cacheError ? (
-          <DashboardCalendarShell tasks={cachedTasks} />
-        ) : null}
+        <TaskRowEditor
+          task={task}
+          klantV2PropertyName={klantV2PropertyName}
+          propertyOptionsById={propertyOptionsById}
+        />
       </div>
     </div>
   );
