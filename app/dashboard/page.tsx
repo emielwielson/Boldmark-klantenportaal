@@ -29,11 +29,12 @@ export default async function DashboardPage() {
   }
 
   let syncBanner: {
-    variant: "ok" | "warn" | "denied" | "config";
+    variant: "warn" | "denied" | "config";
     title: string;
     detail?: string;
-    lastSyncedLabel?: string;
   } | null = null;
+
+  let lastUpdatedLine: string | null = null;
 
   if (user.email) {
     const result = await syncTasksForUser({
@@ -42,23 +43,18 @@ export default async function DashboardPage() {
     });
 
     if (result.kind === "ok") {
-      syncBanner = {
-        variant: "ok",
-        title: "Synchronisatie gelukt",
-        detail: `${result.taskCount} ${result.taskCount === 1 ? "taak" : "taken"} bijgewerkt.`,
-        lastSyncedLabel: formatNlTimestamp(
-          result.cacheLastSyncedAt ?? result.syncedAt,
-        ),
-      };
+      lastUpdatedLine = formatNlTimestamp(
+        result.cacheLastSyncedAt ?? result.syncedAt,
+      );
     } else if (result.kind === "error") {
       syncBanner = {
         variant: "warn",
         title: "Synchronisatie mislukt",
         detail: result.message,
-        lastSyncedLabel: result.usedStaleCache
-          ? formatNlTimestamp(result.cacheLastSyncedAt)
-          : undefined,
       };
+      if (result.usedStaleCache && result.cacheLastSyncedAt) {
+        lastUpdatedLine = formatNlTimestamp(result.cacheLastSyncedAt);
+      }
     } else if (result.kind === "no_notion_person") {
       syncBanner = {
         variant: "denied",
@@ -114,9 +110,9 @@ export default async function DashboardPage() {
               Ingelogd als{" "}
               <span className="font-medium text-ink">{user.email}</span>
             </p>
-            {syncBanner?.lastSyncedLabel && syncBanner.variant !== "denied" ? (
+            {lastUpdatedLine ? (
               <p className="mt-2 text-xs text-ink/55">
-                Laatst bijgewerkt: {syncBanner.lastSyncedLabel}
+                Laatst bijgewerkt: {lastUpdatedLine}
               </p>
             ) : null}
           </div>
