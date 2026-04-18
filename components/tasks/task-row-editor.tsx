@@ -85,9 +85,9 @@ export function TaskRowEditor({
   }
 
   return (
-    <article className="rounded-lg border border-black/[0.06] bg-white shadow-sm">
-      <div className="border-b border-black/[0.06] px-4 py-3 md:px-5">
-        <p className="text-xs text-ink/55">
+    <article className="rounded-lg border border-border bg-surface shadow-sm">
+      <div className="border-b border-border px-4 py-3 md:px-5">
+        <p className="text-xs text-content/55">
           Laatst gesynchroniseerd: {formatNlShort(task.last_synced_at)}
         </p>
       </div>
@@ -154,24 +154,24 @@ function PropertyField({
           name={String(cachedPropertyToPlainValue(snapshot) ?? "")}
         />
       ) : (
-        <span className="whitespace-pre-wrap break-words text-sm text-ink/85">
+        <span className="whitespace-pre-wrap break-words text-sm text-content/85">
           {formatCachedPropertyPreview(snapshot)}
         </span>
       );
     return (
       <div className="min-w-0">
-        <p className="text-xs font-medium uppercase tracking-wide text-ink/45">
+        <p className="text-xs font-medium uppercase tracking-wide text-content/45">
           {label}
         </p>
         <div className="mt-1.5">{preview}</div>
-        <p className="mt-1 text-xs text-ink/50">{hint}</p>
+        <p className="mt-1 text-xs text-content/50">{hint}</p>
       </div>
     );
   }
 
   return (
     <div className="min-w-0">
-      <label className="text-xs font-medium uppercase tracking-wide text-ink/45">
+      <label className="text-xs font-medium uppercase tracking-wide text-content/45">
         {label}
       </label>
       <div className="mt-1.5">
@@ -227,7 +227,7 @@ function EditableControl({
   const [dateDraft, setDateDraft] = useState(() => dateStartForInput(snapshot));
 
   const btnClass =
-    "inline-flex min-h-[44px] items-center justify-center gap-2 rounded-md border border-black/[0.1] bg-page px-3 text-sm font-medium text-ink hover:bg-black/[0.03] disabled:opacity-50";
+    "inline-flex min-h-[44px] items-center justify-center gap-2 rounded-md border border-border bg-field px-3 text-sm font-medium text-content hover:bg-content/[0.07] disabled:opacity-50";
 
   if (type === "checkbox") {
     const checked = Boolean(initial);
@@ -235,7 +235,7 @@ function EditableControl({
       <label className="inline-flex min-h-[44px] cursor-pointer items-center gap-2">
         <input
           type="checkbox"
-          className="size-4 rounded border-black/20"
+          className="size-4 rounded border-content/25"
           checked={checked}
           disabled={saving}
           onChange={(e) => void onSave(propKey, e.target.checked)}
@@ -253,7 +253,7 @@ function EditableControl({
     return (
       <div className="flex flex-wrap items-center gap-2">
         <select
-          className="min-h-[44px] w-full max-w-md rounded-md border border-black/[0.12] bg-white px-3 text-sm text-ink shadow-sm"
+          className="min-h-[44px] w-full max-w-md rounded-md border border-border bg-field px-3 text-sm text-content shadow-sm"
           value={val}
           disabled={saving}
           onChange={(e) =>
@@ -280,11 +280,11 @@ function EditableControl({
     const groups = groupStatusNamesForSelect(names);
     const chip = val
       ? getTaskStatusPillStyle(val).chip
-      : "border-black/[0.12] bg-white text-ink";
+      : "border-border bg-field text-content";
     return (
       <div className="flex flex-wrap items-center gap-2">
         <select
-          className={`min-h-[44px] w-full max-w-md rounded-md border border-black/[0.12] px-3 py-2 text-sm shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/25 ${chip}`}
+          className={`min-h-[44px] w-full max-w-md rounded-md border border-border px-3 py-2 text-sm shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent/60 ${chip}`}
           value={val}
           disabled={saving}
           onChange={(e) =>
@@ -320,10 +320,10 @@ function EditableControl({
           const on = selected.has(name);
           return (
             <li key={name}>
-              <label className="flex min-h-[44px] cursor-pointer items-center gap-2 text-sm">
+              <label className="flex min-h-[44px] cursor-pointer items-center gap-2 text-sm text-content">
                 <input
                   type="checkbox"
-                  className="size-4 rounded border-black/20"
+                  className="size-4 rounded border-content/25"
                   checked={on}
                   disabled={saving}
                   onChange={() => {
@@ -339,7 +339,7 @@ function EditableControl({
           );
         })}
         {union.length === 0 ? (
-          <p className="text-sm text-ink/60">Geen waarden.</p>
+          <p className="text-sm text-content/60">Geen waarden.</p>
         ) : null}
         {saving ? <Spinner className="size-4" /> : null}
       </ul>
@@ -351,7 +351,7 @@ function EditableControl({
       <div className="flex flex-wrap items-end gap-2">
         <input
           type="number"
-          className="min-h-[44px] w-full max-w-md rounded-md border border-black/[0.12] bg-white px-3 text-sm text-ink shadow-sm"
+          className="min-h-[44px] w-full max-w-md rounded-md border border-border bg-field px-3 text-sm text-content shadow-sm"
           value={numDraft}
           disabled={saving}
           onChange={(e) => setNumDraft(e.target.value)}
@@ -382,7 +382,7 @@ function EditableControl({
       <div className="flex flex-wrap items-end gap-2">
         <input
           type="date"
-          className="min-h-[44px] w-full max-w-md rounded-md border border-black/[0.12] bg-white px-3 text-sm text-ink shadow-sm"
+          className="min-h-[44px] w-full max-w-md rounded-md border border-border bg-field px-3 text-sm text-content shadow-sm"
           value={dateDraft}
           disabled={saving}
           onChange={(e) => setDateDraft(e.target.value)}
@@ -410,7 +410,7 @@ function EditableControl({
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
         <input
           type={inputType}
-          className="min-h-[44px] w-full flex-1 rounded-md border border-black/[0.12] bg-white px-3 text-sm text-ink shadow-sm"
+          className="min-h-[44px] w-full flex-1 rounded-md border border-border bg-field px-3 text-sm text-content shadow-sm"
           value={textDraft}
           disabled={saving}
           onChange={(e) => setTextDraft(e.target.value)}
@@ -433,7 +433,7 @@ function EditableControl({
   return (
     <div className="space-y-2">
       <textarea
-        className="min-h-[88px] w-full rounded-md border border-black/[0.12] bg-white px-3 py-2 text-sm text-ink shadow-sm"
+        className="min-h-[88px] w-full rounded-md border border-border bg-field px-3 py-2 text-sm text-content shadow-sm"
         value={textDraft}
         disabled={saving}
         onChange={(e) => setTextDraft(e.target.value)}

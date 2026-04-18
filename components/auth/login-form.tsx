@@ -43,11 +43,11 @@ export function LoginForm({ initialError, initialReason }: LoginFormProps) {
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-4 py-16">
-      <div className="w-full max-w-sm rounded-lg border border-black/[0.06] bg-white px-6 py-8 shadow-sm">
-        <h1 className="text-lg font-semibold tracking-tight text-ink">
+      <div className="w-full max-w-sm rounded-lg border border-border bg-surface px-6 py-8 shadow-sm">
+        <h1 className="text-lg font-semibold tracking-tight text-content">
           Inloggen
         </h1>
-        <p className="mt-2 text-sm leading-relaxed text-ink/70">
+        <p className="mt-2 text-sm leading-relaxed text-muted">
           Voer je e-mailadres in. Je ontvangt een magic link om in te loggen.
         </p>
 
@@ -58,7 +58,7 @@ export function LoginForm({ initialError, initialReason }: LoginFormProps) {
         )}
 
         {sent ? (
-          <p className="mt-6 text-sm text-ink/80">
+          <p className="mt-6 text-sm text-content/85">
             Controleer je inbox voor de loginlink. Je kunt dit venster sluiten.
           </p>
         ) : (
@@ -66,7 +66,7 @@ export function LoginForm({ initialError, initialReason }: LoginFormProps) {
             <div>
               <label
                 htmlFor="email"
-                className="mb-1 block text-sm font-medium text-ink"
+                className="mb-1 block text-sm font-medium text-content"
               >
                 E-mail
               </label>
@@ -78,7 +78,7 @@ export function LoginForm({ initialError, initialReason }: LoginFormProps) {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-md border border-black/[0.08] bg-white px-3 py-2 text-sm text-ink outline-none ring-0 placeholder:text-ink/40 focus:border-black/20"
+                className="w-full rounded-md border border-border bg-field px-3 py-2 text-sm text-content outline-none ring-0 placeholder:text-content/40 focus:border-content/25"
                 placeholder="naam@voorbeeld.nl"
                 disabled={loading}
               />
@@ -91,7 +91,7 @@ export function LoginForm({ initialError, initialReason }: LoginFormProps) {
             <button
               type="submit"
               disabled={loading}
-              className="rounded-md bg-ink px-4 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-content transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               {loading ? "Verzenden…" : "Verstuur magic link"}
             </button>

@@ -5,7 +5,7 @@ import { getTaskStatusPillStyle } from "@/lib/notion/task-status-pill-styles";
 export function TaskStatusPill({ name }: { name: string }) {
   const t = name.trim();
   if (!t) {
-    return <span className="text-sm text-ink/50">—</span>;
+    return <span className="text-sm text-content/50">—</span>;
   }
   const { dot, chip } = getTaskStatusPillStyle(t);
   return (

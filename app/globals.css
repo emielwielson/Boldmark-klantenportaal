@@ -1,29 +1,37 @@
 @import "tailwindcss";
 
+/* Boldmark marketing palette — olive shell, cream type, copper secondary, lime accents */
 :root {
-  /* Notion-adjacent neutrals (light) */
-  --background: #f7f6f3;
-  --foreground: #37352f;
+  --boldmark-olive: #2d3220;
+  --boldmark-cream: #f1efe3;
+  --boldmark-copper: #c47a3e;
+  --boldmark-lime: #d2e4b0;
+  --boldmark-surface: #e8e6df;
+  --boldmark-field: #fcfcfa;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-page: #f7f6f3;
-  --color-ink: #37352f;
+  --color-page: var(--boldmark-olive);
+  --color-ink: var(--boldmark-cream);
+  --color-muted: var(--boldmark-copper);
+  --color-accent: var(--boldmark-lime);
+  --color-surface: var(--boldmark-surface);
+  --color-content: var(--boldmark-olive);
+  --color-field: var(--boldmark-field);
+  --color-border: color-mix(in srgb, var(--boldmark-olive) 16%, transparent);
   --font-sans:
     ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--color-page);
+  color: var(--color-ink);
   font-family: var(--font-sans);
 }
 
-/* Accessible focus for form controls (Notion-adjacent, not loud) */
 :focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--foreground) 35%, transparent);
+  outline: 2px solid
+    color-mix(in srgb, var(--boldmark-lime) 70%, transparent);
   outline-offset: 2px;
 }

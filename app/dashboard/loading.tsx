@@ -1,7 +1,7 @@
 function SkeletonBlock({ className }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse rounded-md bg-black/[0.06] ${className ?? ""}`}
+      className={`animate-pulse rounded-md bg-content/10 ${className ?? ""}`}
     />
   );
 }
@@ -19,7 +19,7 @@ export default function DashboardLoading() {
           <SkeletonBlock className="h-9 w-28 shrink-0 rounded-lg" />
         </header>
 
-        <div className="rounded-lg border border-black/[0.06] bg-white px-4 py-3 shadow-sm md:px-5">
+        <div className="rounded-lg border border-border bg-surface px-4 py-3 shadow-sm md:px-5">
           <SkeletonBlock className="h-4 w-full max-w-md" />
           <SkeletonBlock className="mt-2 h-3 w-3/4 max-w-sm" />
         </div>
@@ -28,7 +28,7 @@ export default function DashboardLoading() {
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="rounded-lg border border-black/[0.06] bg-white p-4 shadow-sm"
+              className="rounded-lg border border-border bg-surface p-4 shadow-sm"
             >
               <SkeletonBlock className="h-5 w-2/3" />
               <SkeletonBlock className="mt-4 h-10 w-full" />
@@ -38,14 +38,14 @@ export default function DashboardLoading() {
           ))}
         </div>
 
-        <div className="hidden overflow-hidden rounded-lg border border-black/[0.06] bg-white shadow-sm md:block">
-          <div className="border-b border-black/[0.06] px-4 py-3">
+        <div className="hidden overflow-hidden rounded-lg border border-border bg-surface shadow-sm md:block">
+          <div className="border-b border-border px-4 py-3">
             <SkeletonBlock className="h-4 w-32" />
           </div>
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="flex gap-4 border-b border-black/[0.04] px-4 py-4 last:border-0"
+              className="flex gap-4 border-b border-border/60 px-4 py-4 last:border-0"
             >
               <SkeletonBlock className="h-4 w-48 shrink-0" />
               <SkeletonBlock className="h-4 flex-1" />
