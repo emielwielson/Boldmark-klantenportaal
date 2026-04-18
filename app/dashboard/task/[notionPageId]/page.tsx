@@ -6,10 +6,7 @@ import { TaskRowEditor } from "@/components/tasks/task-row-editor";
 import type { CachedTaskRow } from "@/components/tasks/task-row-editor";
 import { AppBanner } from "@/components/ui/AppBanner";
 import { getNotionClient } from "@/lib/notion/client";
-import {
-  getKlantV2PropertyName,
-  isNotionConfigured,
-} from "@/lib/notion/config";
+import { isNotionConfigured } from "@/lib/notion/config";
 import { fetchSelectLikeOptionNamesByPropertyId } from "@/lib/notion/data-source-select-options";
 import { getTitleFromProperties } from "@/lib/notion/cached-property-display";
 import { logPortalEvent } from "@/lib/observability/server-log";
@@ -102,8 +99,6 @@ export default async function TaskDetailPage({ params }: PageProps) {
   const blockTaskUi =
     syncBanner?.variant === "denied" || syncBanner?.variant === "config";
 
-  const klantV2PropertyName = getKlantV2PropertyName();
-
   let propertyOptionsById: Record<string, string[]> = {};
   if (!blockTaskUi && isNotionConfigured()) {
     try {
@@ -169,7 +164,6 @@ export default async function TaskDetailPage({ params }: PageProps) {
 
         <TaskRowEditor
           task={task}
-          klantV2PropertyName={klantV2PropertyName}
           propertyOptionsById={propertyOptionsById}
         />
         </div>

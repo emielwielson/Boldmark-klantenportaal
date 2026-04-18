@@ -34,25 +34,11 @@ export type CachedTaskRow = {
 
 type TaskRowEditorProps = {
   task: CachedTaskRow;
-  /** Used for Klant read-only hint (matches `NOTION_KLANTV2_PROPERTY`). */
-  klantV2PropertyName: string;
   propertyOptionsById: Record<string, string[]>;
 };
 
-function formatNlShort(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("nl-NL", {
-      dateStyle: "short",
-      timeStyle: "short",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
-
 export function TaskRowEditor({
   task,
-  klantV2PropertyName,
   propertyOptionsById,
 }: TaskRowEditorProps) {
   const router = useRouter();
@@ -86,12 +72,6 @@ export function TaskRowEditor({
 
   return (
     <article className="rounded-lg border border-task-border bg-task-pane text-task-ink shadow-sm">
-      <div className="border-b border-task-border px-4 py-3 md:px-5">
-        <p className="text-xs text-task-ink/60">
-          Laatst gesynchroniseerd: {formatNlShort(task.last_synced_at)}
-        </p>
-      </div>
-
       <div className="grid gap-5 px-4 py-4 md:grid-cols-2 md:gap-6 md:px-5 md:py-5">
         {keys.map((propKey) => (
           <PropertyField
@@ -99,7 +79,6 @@ export function TaskRowEditor({
             properties={task.properties}
             propKey={propKey}
             snapshot={task.properties[propKey]}
-            klantV2PropertyName={klantV2PropertyName}
             propertyOptionsById={propertyOptionsById}
             syncToken={task.last_synced_at}
             saving={savingKey === propKey}
@@ -116,7 +95,6 @@ type PropertyFieldProps = {
   properties: Record<string, unknown>;
   propKey: string;
   snapshot: unknown;
-  klantV2PropertyName: string;
   propertyOptionsById: Record<string, string[]>;
   syncToken: string;
   saving: boolean;
@@ -128,7 +106,6 @@ function PropertyField({
   properties,
   propKey,
   snapshot,
-  klantV2PropertyName,
   propertyOptionsById,
   syncToken,
   saving,
@@ -144,10 +121,6 @@ function PropertyField({
   );
 
   if (!allowEdit) {
-    const klant = isKlantHint(propKey, klantV2PropertyName);
-    const hint = klant
-      ? "Toegewezen via Klant — beheer in Notion."
-      : "Alleen in Notion te wijzigen.";
     const preview =
       type === "status" ? (
         <TaskStatusPill
@@ -165,7 +138,6 @@ function PropertyField({
           {label}
         </p>
         <div className="mt-1.5">{preview}</div>
-        <p className="mt-1 text-xs text-task-ink/65">{hint}</p>
       </div>
     );
   }
@@ -189,10 +161,6 @@ function PropertyField({
       <InlineFieldError message={error} />
     </div>
   );
-}
-
-function isKlantHint(propKey: string, klant: string) {
-  return propKey.trim().toLowerCase() === klant.trim().toLowerCase();
 }
 
 type EditableControlProps = {
