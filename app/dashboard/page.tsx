@@ -1,4 +1,5 @@
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { DashboardLogoShell } from "@/components/layout/dashboard-logo-shell";
 import { DashboardCalendarShell } from "@/components/tasks/dashboard-calendar-shell";
 import type { CachedTaskRow } from "@/components/tasks/task-row-editor";
 import { AppBanner } from "@/components/ui/AppBanner";
@@ -99,10 +100,11 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col px-4 py-10">
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-        <header className="flex flex-wrap items-center justify-between gap-4">
-          <div>
+    <DashboardLogoShell>
+      <div className="flex flex-1 flex-col px-4 py-10">
+        <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
+        <header className="flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0">
             <h1 className="text-xl font-semibold tracking-tight text-ink">
               Dashboard
             </h1>
@@ -140,7 +142,8 @@ export default async function DashboardPage() {
             <DashboardCalendarShell tasks={cachedTasks} />
           </div>
         ) : null}
+        </div>
       </div>
-    </div>
+    </DashboardLogoShell>
   );
 }

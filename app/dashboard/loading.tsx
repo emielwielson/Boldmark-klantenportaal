@@ -1,3 +1,5 @@
+import { DashboardLogoShell } from "@/components/layout/dashboard-logo-shell";
+
 function SkeletonBlock({ className }: { className?: string }) {
   return (
     <div
@@ -8,9 +10,10 @@ function SkeletonBlock({ className }: { className?: string }) {
 
 export default function DashboardLoading() {
   return (
-    <div className="flex flex-1 flex-col px-4 py-10">
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-        <header className="flex flex-wrap items-center justify-between gap-4">
+    <DashboardLogoShell>
+      <div className="flex flex-1 flex-col px-4 py-10">
+        <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
+        <header className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0 flex-1 space-y-2">
             <SkeletonBlock className="h-7 w-40" />
             <SkeletonBlock className="h-4 w-64 max-w-full" />
@@ -55,7 +58,8 @@ export default function DashboardLoading() {
             ))}
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    </DashboardLogoShell>
   );
 }
