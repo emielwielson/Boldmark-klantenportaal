@@ -25,6 +25,22 @@ export function normalizeNotionTasksId(raw: string): string {
   );
 }
 
+/**
+ * Normalizes Notion user/person UUID strings for storage and RLS overlap checks.
+ * Prefer this over raw API strings so `user_person_scope` and `klant_v2_person_ids` match.
+ */
+export function normalizeNotionUserId(raw: string): string {
+  const trimmed = raw.trim();
+  if (UUID_RE.test(trimmed)) {
+    return trimmed.toLowerCase();
+  }
+  const compact = trimmed.replace(/-/g, "");
+  if (PLAIN_32_HEX.test(compact) && compact.length === 32) {
+    return `${compact.slice(0, 8)}-${compact.slice(8, 12)}-${compact.slice(12, 16)}-${compact.slice(16, 20)}-${compact.slice(20, 32)}`.toLowerCase();
+  }
+  return trimmed.toLowerCase();
+}
+
 /** True when Notion integration env is present enough to call the API. */
 export function isNotionConfigured(): boolean {
   return Boolean(process.env.NOTION_TOKEN?.trim());

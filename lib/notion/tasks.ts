@@ -89,5 +89,7 @@ export async function listInScopeTasks(
     notionPersonIds,
   });
 
-  return pages.map((p) => mapPageToTask(p, klantV2Property));
+  return pages.map((p) =>
+    mapPageToTask(p, klantV2Property, klantV2ApiPropertyKey),
+  );
 }

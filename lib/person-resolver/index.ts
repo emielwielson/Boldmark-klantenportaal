@@ -2,7 +2,7 @@ import type { Client, UserObjectResponse } from "@notionhq/client";
 
 import { createClient as createSupabaseServerClient } from "@/lib/supabase/server";
 import { getNotionClient } from "@/lib/notion/client";
-import { isNotionConfigured } from "@/lib/notion/config";
+import { isNotionConfigured, normalizeNotionUserId } from "@/lib/notion/config";
 
 import { findGuestPersonIdsByEmailViaTaskPages } from "@/lib/person-resolver/guest-person-ids-from-tasks";
 
@@ -62,7 +62,7 @@ export async function persistUserPersonScope(
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
   userId: string,
   notionPersonIds: string[],
-): Promise<void> {
+): Promise<string[]> {
   const { error: delErr } = await supabase
     .from("user_person_scope")
     .delete()
@@ -70,10 +70,13 @@ export async function persistUserPersonScope(
   if (delErr) {
     throw new Error(`user_person_scope delete: ${delErr.message}`);
   }
-  if (notionPersonIds.length === 0) return;
+  const normalized = [
+    ...new Set(notionPersonIds.map((id) => normalizeNotionUserId(id))),
+  ];
+  if (normalized.length === 0) return [];
 
   const { error: insErr } = await supabase.from("user_person_scope").insert(
-    notionPersonIds.map((notion_person_id) => ({
+    normalized.map((notion_person_id) => ({
       user_id: userId,
       notion_person_id,
     })),
@@ -81,6 +84,7 @@ export async function persistUserPersonScope(
   if (insErr) {
     throw new Error(`user_person_scope insert: ${insErr.message}`);
   }
+  return normalized;
 }
 
 export type ResolveAndPersistResult = {
@@ -116,7 +120,11 @@ export async function resolveAndPersistPersonScope(opts: {
 
   if (existingScope?.length) {
     return {
-      notionPersonIds: existingScope.map((r) => r.notion_person_id),
+      notionPersonIds: [
+        ...new Set(
+          existingScope.map((r) => normalizeNotionUserId(r.notion_person_id)),
+        ),
+      ],
       skipped: false,
       scopeFromDatabase: true,
     };
@@ -125,7 +133,11 @@ export async function resolveAndPersistPersonScope(opts: {
   const notion = getNotionClient();
   const notionPersonIds = await findNotionPersonIdsByEmail(notion, opts.email);
 
-  await persistUserPersonScope(supabase, opts.userId, notionPersonIds);
+  const persisted = await persistUserPersonScope(
+    supabase,
+    opts.userId,
+    notionPersonIds,
+  );
 
-  return { notionPersonIds, skipped: false };
+  return { notionPersonIds: persisted, skipped: false };
 }

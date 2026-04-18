@@ -9,6 +9,7 @@ import {
   getNotionTasksDatabaseId,
   isNotionTasksDatabaseConfigured,
 } from "@/lib/notion/config";
+import { getKlantV2ApiPropertyKey } from "@/lib/notion/klant-v2-api-property-key";
 import { getPrimaryDataSourceId } from "@/lib/notion/get-primary-data-source";
 import { extractKlantV2PersonIds } from "@/lib/notion/map-page-to-task";
 
@@ -81,6 +82,7 @@ export async function findGuestPersonIdsByEmailViaTaskPages(
     notion,
     tasksDbOrDataSourceId,
   );
+  const klantV2ApiKey = await getKlantV2ApiPropertyKey(notion);
 
   const attemptedIds = new Set<string>();
   let cursor: string | undefined;
@@ -99,6 +101,7 @@ export async function findGuestPersonIdsByEmailViaTaskPages(
       const idsOnPage = extractKlantV2PersonIds(
         row as PageObjectResponse,
         klantV2Property,
+        klantV2ApiKey,
       );
 
       const match = await retrieveFirstMatchingPersonId(

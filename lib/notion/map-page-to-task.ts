@@ -2,7 +2,10 @@ import type { PageObjectResponse } from "@notionhq/client";
 
 import type { Task } from "@/types/notion-task";
 
-import { getKlantV2PropertyName } from "@/lib/notion/config";
+import {
+  getKlantV2PropertyName,
+  normalizeNotionUserId,
+} from "@/lib/notion/config";
 import { matchPagePropertyKey } from "@/lib/notion/match-page-property-key";
 
 function richTextPlain(rich: Array<{ plain_text?: string }>): string {
@@ -27,11 +30,21 @@ function titleFromPage(page: PageObjectResponse): string | null {
  * Each person user has `id` (UUID string). Notion “groups” use `object: "group"` and are
  * not matched against `user_person_scope` (workspace user ids only).
  */
+/**
+ * @param schemaPropertyKey — Same key as `dataSources.query` filters (from
+ * `getKlantV2ApiPropertyKey`). Page objects often use this id as the property key
+ * instead of the visible column title; without it, extraction can return `[]` while
+ * the query still matches rows, breaking RLS on `notion_sync_cache` insert.
+ */
 export function extractKlantV2PersonIds(
   page: PageObjectResponse,
   klantV2PropertyName: string,
+  schemaPropertyKey?: string,
 ): string[] {
-  const key = matchPagePropertyKey(page.properties, klantV2PropertyName);
+  const key =
+    (schemaPropertyKey && Object.hasOwn(page.properties, schemaPropertyKey)
+      ? schemaPropertyKey
+      : undefined) ?? matchPagePropertyKey(page.properties, klantV2PropertyName);
   if (!key) {
     return [];
   }
@@ -44,7 +57,7 @@ export function extractKlantV2PersonIds(
       (p): p is { id: string; object: "user" } =>
         p.object === "user" && typeof p.id === "string",
     )
-    .map((p) => p.id);
+    .map((p) => normalizeNotionUserId(p.id));
 }
 
 /**
@@ -62,13 +75,18 @@ function propertiesToJson(
 export function mapPageToTask(
   page: PageObjectResponse,
   klantV2PropertyName: string = getKlantV2PropertyName(),
+  schemaPropertyKey?: string,
 ): Task {
   return {
     notion_page_id: page.id,
     url: page.url,
     last_edited_time: page.last_edited_time,
     title: titleFromPage(page),
-    klant_v2_person_ids: extractKlantV2PersonIds(page, klantV2PropertyName),
+    klant_v2_person_ids: extractKlantV2PersonIds(
+      page,
+      klantV2PropertyName,
+      schemaPropertyKey,
+    ),
     properties: propertiesToJson(page.properties),
   };
 }

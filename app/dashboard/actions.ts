@@ -8,6 +8,7 @@ import {
 } from "@notionhq/client";
 import { getKlantV2PropertyName } from "@/lib/notion/config";
 import { getNotionClient } from "@/lib/notion/client";
+import { getKlantV2ApiPropertyKey } from "@/lib/notion/klant-v2-api-property-key";
 import { mapPageToTask } from "@/lib/notion/map-page-to-task";
 import { plainValueToNotionPropertyUpdate } from "@/lib/notion/map-task-to-notion-properties";
 import { logPortalEvent } from "@/lib/observability/server-log";
@@ -91,6 +92,7 @@ export async function updateTaskProperty(
       };
     }
     const notion = getNotionClient();
+    const klantV2ApiKey = await getKlantV2ApiPropertyKey(notion);
 
     await notion.pages.update({
       page_id: notionPageId,
@@ -114,7 +116,11 @@ export async function updateTaskProperty(
       };
     }
 
-    const task = mapPageToTask(pageRes, getKlantV2PropertyName());
+    const task = mapPageToTask(
+      pageRes,
+      getKlantV2PropertyName(),
+      klantV2ApiKey,
+    );
     const now = new Date().toISOString();
 
     const { error: upErr } = await supabase.from("notion_sync_cache").upsert(
