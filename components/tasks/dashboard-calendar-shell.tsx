@@ -17,6 +17,18 @@ import type { CachedTaskRow } from "./task-row-editor";
 
 const WEEKDAYS_SHORT = ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"];
 
+/** Saturday / Sunday in local time (calendar grid is Monday-first). */
+function isWeekendDay(year: number, monthIndex: number, day: number): boolean {
+  const dow = new Date(year, monthIndex, day).getDay();
+  return dow === 0 || dow === 6;
+}
+
+const weekendHeaderCell =
+  "bg-stone-50/90 text-ink/55";
+const weekdayHeaderCell = "bg-page text-ink/55";
+const weekendDayCell = "bg-stone-50/80";
+const weekdayDayCell = "bg-white";
+
 function monthTitleNl(year: number, monthIndex: number): string {
   const raw = new Intl.DateTimeFormat("nl-NL", {
     month: "long",
@@ -138,10 +150,12 @@ export function DashboardCalendarShell({ tasks }: { tasks: CachedTaskRow[] }) {
 
       <div className="overflow-x-auto rounded-lg border border-black/[0.06] bg-white shadow-sm">
         <div className="grid min-w-[720px] grid-cols-7 gap-px bg-black/[0.06] p-px">
-          {WEEKDAYS_SHORT.map((w) => (
+          {WEEKDAYS_SHORT.map((w, i) => (
             <div
               key={w}
-              className="bg-page px-1 py-2 text-center text-xs font-medium uppercase tracking-wide text-ink/55"
+              className={`px-1 py-2 text-center text-xs font-medium uppercase tracking-wide ${
+                i >= 5 ? weekendHeaderCell : weekdayHeaderCell
+              }`}
             >
               {w}
             </div>
@@ -156,10 +170,13 @@ export function DashboardCalendarShell({ tasks }: { tasks: CachedTaskRow[] }) {
               );
             }
             const { day, dayKey, dayTasks } = cell;
+            const weekend = isWeekendDay(view.y, view.m, day);
             return (
               <div
                 key={dayKey}
-                className="flex min-h-[88px] flex-col gap-1 bg-white p-1"
+                className={`flex min-h-[88px] flex-col gap-1 p-1 ${
+                  weekend ? weekendDayCell : weekdayDayCell
+                }`}
               >
                 <span className="text-xs font-medium text-ink/70">{day}</span>
                 <ul className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto">
