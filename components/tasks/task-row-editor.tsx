@@ -11,10 +11,12 @@ import {
   mergeSelectOptionNames,
   mergeStatusOptionNames,
   notionPublicPageUrl,
-  orderedPropertyKeys,
   plainDateFromInput,
-  shouldAllowPortalEdit,
 } from "@/lib/notion/cached-property-display";
+import {
+  getPortalOrderedPropertyKeys,
+  shouldShowPropertyEditor,
+} from "@/lib/notion/portal-task-properties";
 import { InlineFieldError } from "@/components/ui/InlineFieldError";
 import { Spinner } from "@/components/ui/Spinner";
 import { useRouter } from "next/navigation";
@@ -28,6 +30,7 @@ export type CachedTaskRow = {
 
 type TaskRowEditorProps = {
   task: CachedTaskRow;
+  /** Used for Klant read-only hint (matches `NOTION_KLANTV2_PROPERTY`). */
   klantV2PropertyName: string;
   propertyOptionsById: Record<string, string[]>;
 };
@@ -52,7 +55,7 @@ export function TaskRowEditor({
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  const keys = orderedPropertyKeys(task.properties, klantV2PropertyName);
+  const keys = getPortalOrderedPropertyKeys(task.properties);
   const notionUrl = notionPublicPageUrl(task.notion_page_id);
 
   async function saveField(propertyName: string, plainValue: unknown) {
@@ -98,6 +101,7 @@ export function TaskRowEditor({
         {keys.map((propKey) => (
           <PropertyField
             key={`${propKey}-${task.last_synced_at}`}
+            properties={task.properties}
             propKey={propKey}
             snapshot={task.properties[propKey]}
             klantV2PropertyName={klantV2PropertyName}
@@ -114,6 +118,7 @@ export function TaskRowEditor({
 }
 
 type PropertyFieldProps = {
+  properties: Record<string, unknown>;
   propKey: string;
   snapshot: unknown;
   klantV2PropertyName: string;
@@ -125,6 +130,7 @@ type PropertyFieldProps = {
 };
 
 function PropertyField({
+  properties,
   propKey,
   snapshot,
   klantV2PropertyName,
@@ -136,7 +142,11 @@ function PropertyField({
 }: PropertyFieldProps) {
   const label = propKey.trim();
   const type = getCachedPropertyType(snapshot);
-  const allowEdit = shouldAllowPortalEdit(propKey, snapshot, klantV2PropertyName);
+  const allowEdit = shouldShowPropertyEditor(
+    properties,
+    propKey,
+    snapshot,
+  );
 
   if (!allowEdit) {
     const klant = isKlantHint(propKey, klantV2PropertyName);

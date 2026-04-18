@@ -321,41 +321,9 @@ export function plainDateFromInput(isoDate: string): {
   return { start: t };
 }
 
-/**
- * Property keys for UI: title first, Klant column next (if present), then alphabetical.
- */
-export function orderedPropertyKeys(
-  properties: Record<string, unknown>,
-  klantV2ConfiguredName: string,
-): string[] {
-  const keys = Object.keys(properties);
-  const titleKey = keys.find((k) => getPropType(properties[k]) === "title");
-  const klantKey = matchPropertyKey(properties, klantV2ConfiguredName);
-  const rest = keys
-    .filter((k) => k !== titleKey && k !== klantKey)
-    .sort((a, b) => a.localeCompare(b, "nl"));
-  const out: string[] = [];
-  if (titleKey) out.push(titleKey);
-  if (klantKey) out.push(klantKey);
-  out.push(...rest);
-  return out;
-}
-
 export function isKlantV2Column(
   propertyKey: string,
   klantV2ConfiguredName: string,
 ): boolean {
   return propertyKey.trim().toLowerCase() === klantV2ConfiguredName.trim().toLowerCase();
-}
-
-export function shouldAllowPortalEdit(
-  propertyKey: string,
-  propertySnapshot: unknown,
-  klantV2ConfiguredName: string,
-): boolean {
-  if (isKlantV2Column(propertyKey, klantV2ConfiguredName)) {
-    return false;
-  }
-  const type = getPropType(propertySnapshot);
-  return isCachedPropertyEditable(type);
 }

@@ -6,8 +6,6 @@ import {
   isCachedPropertyEditable,
   mergeSelectOptionNames,
   notionPublicPageUrl,
-  orderedPropertyKeys,
-  shouldAllowPortalEdit,
 } from "./cached-property-display";
 
 describe("notionPublicPageUrl", () => {
@@ -57,21 +55,6 @@ describe("isCachedPropertyEditable", () => {
   });
 });
 
-describe("orderedPropertyKeys", () => {
-  it("orders title first, then Klant, then alphabetical", () => {
-    const properties = {
-      Zeta: { type: "rich_text", rich_text: [] },
-      Name: { type: "title", title: [] },
-      " Klant V2": { type: "people", people: [] },
-    };
-    expect(orderedPropertyKeys(properties, "Klant V2")).toEqual([
-      "Name",
-      " Klant V2",
-      "Zeta",
-    ]);
-  });
-});
-
 describe("mergeSelectOptionNames", () => {
   it("includes current selection when page snapshot has no schema options", () => {
     const snapshot = {
@@ -94,24 +77,3 @@ describe("mergeSelectOptionNames", () => {
   });
 });
 
-describe("shouldAllowPortalEdit", () => {
-  it("blocks Klant column even if type is editable", () => {
-    expect(
-      shouldAllowPortalEdit(
-        "Klant V2",
-        { type: "people", people: [] },
-        "Klant V2",
-      ),
-    ).toBe(false);
-  });
-
-  it("allows rich_text when not Klant", () => {
-    expect(
-      shouldAllowPortalEdit(
-        "Notes",
-        { type: "rich_text", rich_text: [] },
-        "Klant V2",
-      ),
-    ).toBe(true);
-  });
-});
