@@ -230,6 +230,75 @@ export function getMultiSelectOptions(cached: unknown): SelectOption[] {
   return p.multi_select?.options ?? [];
 }
 
+/** Notion property `id` on cached page properties (stable; used to join data source schema options). */
+export function getPropertyItemId(snapshot: unknown): string | undefined {
+  if (!snapshot || typeof snapshot !== "object") return undefined;
+  const id = (snapshot as { id?: string }).id;
+  return typeof id === "string" && id.length > 0 ? id : undefined;
+}
+
+export function getSelectedSelectName(cached: unknown): string | undefined {
+  if (!cached || typeof cached !== "object") return undefined;
+  const s = (cached as { select?: { name?: string } | null }).select;
+  const name = s?.name;
+  return name && name.length > 0 ? name : undefined;
+}
+
+export function getSelectedStatusName(cached: unknown): string | undefined {
+  if (!cached || typeof cached !== "object") return undefined;
+  const s = (cached as { status?: { name?: string } | null }).status;
+  const name = s?.name;
+  return name && name.length > 0 ? name : undefined;
+}
+
+/**
+ * Union: data source schema names (if fetched) + any names on the cached snapshot + current value.
+ * Ensures `<select>` options include the selected value (page objects omit `options` on rows).
+ */
+export function mergeSelectOptionNames(
+  schemaNames: string[] | undefined,
+  snapshot: unknown,
+): string[] {
+  const fromSchema = schemaNames ?? [];
+  const fromCache = getSelectOptions(snapshot).map((o) => o.name);
+  const current = getSelectedSelectName(snapshot);
+  const uniq = new Set<string>([
+    ...fromSchema,
+    ...fromCache,
+    ...(current ? [current] : []),
+  ]);
+  return [...uniq].sort((a, b) => a.localeCompare(b, "nl"));
+}
+
+export function mergeStatusOptionNames(
+  schemaNames: string[] | undefined,
+  snapshot: unknown,
+): string[] {
+  const fromSchema = schemaNames ?? [];
+  const fromCache = getStatusOptions(snapshot).map((o) => o.name);
+  const current = getSelectedStatusName(snapshot);
+  const uniq = new Set<string>([
+    ...fromSchema,
+    ...fromCache,
+    ...(current ? [current] : []),
+  ]);
+  return [...uniq].sort((a, b) => a.localeCompare(b, "nl"));
+}
+
+export function mergeMultiSelectOptionNames(
+  schemaNames: string[] | undefined,
+  snapshot: unknown,
+): string[] {
+  const fromSchema = schemaNames ?? [];
+  const fromCache = getMultiSelectOptions(snapshot).map((o) => o.name);
+  const raw = (
+    snapshot as { multi_select?: { name?: string }[] } | null
+  )?.multi_select;
+  const selected = (raw ?? []).map((x) => x.name).filter(Boolean) as string[];
+  const uniq = new Set<string>([...fromSchema, ...fromCache, ...selected]);
+  return [...uniq].sort((a, b) => a.localeCompare(b, "nl"));
+}
+
 /** `YYYY-MM-DD` for `<input type="date" />` from Notion date payload. */
 export function dateStartForInput(cached: unknown): string {
   const plain = cachedPropertyToPlainValue(cached);

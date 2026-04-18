@@ -4,6 +4,7 @@ import {
   formatCachedPropertyPreview,
   getTitleFromProperties,
   isCachedPropertyEditable,
+  mergeSelectOptionNames,
   notionPublicPageUrl,
   orderedPropertyKeys,
   shouldAllowPortalEdit,
@@ -67,6 +68,28 @@ describe("orderedPropertyKeys", () => {
       "Name",
       " Klant V2",
       "Zeta",
+    ]);
+  });
+});
+
+describe("mergeSelectOptionNames", () => {
+  it("includes current selection when page snapshot has no schema options", () => {
+    const snapshot = {
+      type: "select",
+      select: { name: "Cat A", id: "x", color: "default" },
+    };
+    expect(mergeSelectOptionNames(undefined, snapshot)).toEqual(["Cat A"]);
+  });
+
+  it("merges schema names with current value", () => {
+    const snapshot = {
+      type: "select",
+      select: { name: "B", id: "x", color: "default" },
+    };
+    expect(mergeSelectOptionNames(["A", "B", "C"], snapshot)).toEqual([
+      "A",
+      "B",
+      "C",
     ]);
   });
 });

@@ -2,7 +2,13 @@ import { SignOutButton } from "@/components/auth/sign-out-button";
 import { TaskList } from "@/components/tasks/task-list";
 import type { CachedTaskRow } from "@/components/tasks/task-row-editor";
 import { AppBanner } from "@/components/ui/AppBanner";
-import { getKlantV2PropertyName } from "@/lib/notion/config";
+import { getNotionClient } from "@/lib/notion/client";
+import {
+  getKlantV2PropertyName,
+  isNotionConfigured,
+} from "@/lib/notion/config";
+import { fetchSelectLikeOptionNamesByPropertyId } from "@/lib/notion/data-source-select-options";
+import { logPortalEvent } from "@/lib/observability/server-log";
 import { syncTasksForUser } from "@/lib/sync/tasks-sync";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -105,6 +111,20 @@ export default async function DashboardPage() {
 
   const klantV2PropertyName = getKlantV2PropertyName();
 
+  let propertyOptionsById: Record<string, string[]> = {};
+  if (!blockTaskUi && !cacheError && isNotionConfigured()) {
+    try {
+      propertyOptionsById = await fetchSelectLikeOptionNamesByPropertyId(
+        getNotionClient(),
+      );
+    } catch (e) {
+      logPortalEvent("warn", {
+        event: "data_source_select_options_failed",
+        message: e instanceof Error ? e.message : String(e),
+      });
+    }
+  }
+
   return (
     <div className="flex flex-1 flex-col px-4 py-10">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
@@ -143,7 +163,11 @@ export default async function DashboardPage() {
         ) : null}
 
         {!blockTaskUi && !cacheError ? (
-          <TaskList tasks={cachedTasks} klantV2PropertyName={klantV2PropertyName} />
+          <TaskList
+            tasks={cachedTasks}
+            klantV2PropertyName={klantV2PropertyName}
+            propertyOptionsById={propertyOptionsById}
+          />
         ) : null}
       </div>
     </div>

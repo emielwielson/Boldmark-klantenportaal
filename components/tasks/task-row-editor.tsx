@@ -6,9 +6,10 @@ import {
   dateStartForInput,
   formatCachedPropertyPreview,
   getCachedPropertyType,
-  getMultiSelectOptions,
-  getSelectOptions,
-  getStatusOptions,
+  getPropertyItemId,
+  mergeMultiSelectOptionNames,
+  mergeSelectOptionNames,
+  mergeStatusOptionNames,
   notionPublicPageUrl,
   orderedPropertyKeys,
   plainDateFromInput,
@@ -28,6 +29,7 @@ export type CachedTaskRow = {
 type TaskRowEditorProps = {
   task: CachedTaskRow;
   klantV2PropertyName: string;
+  propertyOptionsById: Record<string, string[]>;
 };
 
 function formatNlShort(iso: string) {
@@ -41,7 +43,11 @@ function formatNlShort(iso: string) {
   }
 }
 
-export function TaskRowEditor({ task, klantV2PropertyName }: TaskRowEditorProps) {
+export function TaskRowEditor({
+  task,
+  klantV2PropertyName,
+  propertyOptionsById,
+}: TaskRowEditorProps) {
   const router = useRouter();
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -95,6 +101,7 @@ export function TaskRowEditor({ task, klantV2PropertyName }: TaskRowEditorProps)
             propKey={propKey}
             snapshot={task.properties[propKey]}
             klantV2PropertyName={klantV2PropertyName}
+            propertyOptionsById={propertyOptionsById}
             syncToken={task.last_synced_at}
             saving={savingKey === propKey}
             error={fieldErrors[propKey] ?? null}
@@ -110,6 +117,7 @@ type PropertyFieldProps = {
   propKey: string;
   snapshot: unknown;
   klantV2PropertyName: string;
+  propertyOptionsById: Record<string, string[]>;
   syncToken: string;
   saving: boolean;
   error: string | null;
@@ -120,6 +128,7 @@ function PropertyField({
   propKey,
   snapshot,
   klantV2PropertyName,
+  propertyOptionsById,
   syncToken,
   saving,
   error,
@@ -158,6 +167,7 @@ function PropertyField({
           propKey={propKey}
           snapshot={snapshot}
           type={type ?? ""}
+          propertyOptionsById={propertyOptionsById}
           saving={saving}
           onSave={onSave}
         />
@@ -175,6 +185,7 @@ type EditableControlProps = {
   propKey: string;
   snapshot: unknown;
   type: string;
+  propertyOptionsById: Record<string, string[]>;
   saving: boolean;
   onSave: (propertyName: string, plainValue: unknown) => void | Promise<void>;
 };
@@ -183,6 +194,7 @@ function EditableControl({
   propKey,
   snapshot,
   type,
+  propertyOptionsById,
   saving,
   onSave,
 }: EditableControlProps) {
@@ -221,7 +233,9 @@ function EditableControl({
   }
 
   if (type === "select") {
-    const opts = getSelectOptions(snapshot);
+    const propId = getPropertyItemId(snapshot);
+    const schemaNames = propId ? propertyOptionsById[propId] : undefined;
+    const names = mergeSelectOptionNames(schemaNames, snapshot);
     const val = typeof initial === "string" ? initial : "";
     return (
       <div className="flex flex-wrap items-center gap-2">
@@ -234,9 +248,9 @@ function EditableControl({
           }
         >
           <option value="">—</option>
-          {opts.map((o) => (
-            <option key={o.name} value={o.name}>
-              {o.name}
+          {names.map((name) => (
+            <option key={name} value={name}>
+              {name}
             </option>
           ))}
         </select>
@@ -246,7 +260,9 @@ function EditableControl({
   }
 
   if (type === "status") {
-    const opts = getStatusOptions(snapshot);
+    const propId = getPropertyItemId(snapshot);
+    const schemaNames = propId ? propertyOptionsById[propId] : undefined;
+    const names = mergeStatusOptionNames(schemaNames, snapshot);
     const val = typeof initial === "string" ? initial : "";
     return (
       <div className="flex flex-wrap items-center gap-2">
@@ -259,9 +275,9 @@ function EditableControl({
           }
         >
           <option value="">—</option>
-          {opts.map((o) => (
-            <option key={o.name} value={o.name}>
-              {o.name}
+          {names.map((name) => (
+            <option key={name} value={name}>
+              {name}
             </option>
           ))}
         </select>
@@ -271,14 +287,12 @@ function EditableControl({
   }
 
   if (type === "multi_select") {
-    const opts = getMultiSelectOptions(snapshot);
+    const propId = getPropertyItemId(snapshot);
+    const schemaNames = propId ? propertyOptionsById[propId] : undefined;
+    const union = mergeMultiSelectOptionNames(schemaNames, snapshot);
     const selected = Array.isArray(initial)
       ? new Set(initial as string[])
       : new Set<string>();
-    const fromOpts = opts.map((o) => o.name);
-    const union = [...new Set([...fromOpts, ...selected])].sort((a, b) =>
-      a.localeCompare(b, "nl"),
-    );
     return (
       <ul className="space-y-2">
         {union.map((name) => {

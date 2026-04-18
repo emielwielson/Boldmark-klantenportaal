@@ -7,6 +7,8 @@ import {
 type TaskListProps = {
   tasks: CachedTaskRow[];
   klantV2PropertyName: string;
+  /** Data source schema option names by Notion property id (select/status/multi_select). */
+  propertyOptionsById: Record<string, string[]>;
 };
 
 function sortTasksByTitle(tasks: CachedTaskRow[]): CachedTaskRow[] {
@@ -19,7 +21,11 @@ function sortTasksByTitle(tasks: CachedTaskRow[]): CachedTaskRow[] {
   });
 }
 
-export function TaskList({ tasks, klantV2PropertyName }: TaskListProps) {
+export function TaskList({
+  tasks,
+  klantV2PropertyName,
+  propertyOptionsById,
+}: TaskListProps) {
   const sorted = sortTasksByTitle(tasks);
 
   if (sorted.length === 0) {
@@ -46,7 +52,11 @@ export function TaskList({ tasks, klantV2PropertyName }: TaskListProps) {
             key={`${task.notion_page_id}-${task.last_synced_at}`}
             className="list-none"
           >
-            <TaskRowEditor task={task} klantV2PropertyName={klantV2PropertyName} />
+            <TaskRowEditor
+              task={task}
+              klantV2PropertyName={klantV2PropertyName}
+              propertyOptionsById={propertyOptionsById}
+            />
           </li>
         ))}
       </ul>
