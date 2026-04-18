@@ -95,4 +95,62 @@ describe("mapNotionBlockToDisplay", () => {
       depth: 0,
     });
   });
+
+  it("maps file (external) with name and caption", () => {
+    const block = {
+      type: "file",
+      file: {
+        type: "external",
+        external: { url: "https://example.com/doc.pdf" },
+        name: "Quarterly report.pdf",
+        caption: [{ plain_text: "Please review", type: "text" }],
+      },
+    } as unknown as BlockObjectResponse;
+    expect(mapNotionBlockToDisplay(block, 0)).toEqual({
+      kind: "file",
+      url: "https://example.com/doc.pdf",
+      name: "Quarterly report.pdf",
+      caption: "Please review",
+      depth: 0,
+    });
+  });
+
+  it("maps file (hosted) and uses fallback name when empty", () => {
+    const block = {
+      type: "file",
+      file: {
+        type: "file",
+        file: {
+          url: "https://prod-files-secure.s3.us-west-2.amazonaws.com/x/y/z.bin",
+          expiry_time: "2099-01-01T00:00:00.000Z",
+        },
+        name: "   ",
+        caption: [],
+      },
+    } as unknown as BlockObjectResponse;
+    expect(mapNotionBlockToDisplay(block, 1)).toEqual({
+      kind: "file",
+      url: "https://prod-files-secure.s3.us-west-2.amazonaws.com/x/y/z.bin",
+      name: "Bestand",
+      caption: null,
+      depth: 1,
+    });
+  });
+
+  it("falls back to unsupported when file URL is invalid", () => {
+    const block = {
+      type: "file",
+      file: {
+        type: "external",
+        external: { url: "not-a-url" },
+        name: "x",
+        caption: [],
+      },
+    } as unknown as BlockObjectResponse;
+    expect(mapNotionBlockToDisplay(block, 0)).toEqual({
+      kind: "unsupported",
+      notionType: "file",
+      depth: 0,
+    });
+  });
 });

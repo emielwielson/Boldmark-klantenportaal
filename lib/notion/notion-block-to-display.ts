@@ -11,32 +11,43 @@ function calloutIconEmoji(
   return null;
 }
 
+function safeHttpDisplayUrl(raw: string | undefined | null): string | null {
+  if (typeof raw !== "string" || !raw) return null;
+  try {
+    const u = new URL(raw);
+    if (u.protocol !== "https:" && u.protocol !== "http:") return null;
+    return u.href;
+  } catch {
+    return null;
+  }
+}
+
 function notionImageDisplayUrl(
   image: Extract<BlockObjectResponse, { type: "image" }>["image"],
 ): string | null {
   if (image.type === "external") {
-    const raw = image.external.url;
-    if (typeof raw !== "string" || !raw) return null;
-    try {
-      const u = new URL(raw);
-      if (u.protocol !== "https:" && u.protocol !== "http:") return null;
-      return u.href;
-    } catch {
-      return null;
-    }
+    return safeHttpDisplayUrl(image.external.url);
   }
   if (image.type === "file") {
-    const raw = image.file.url;
-    if (typeof raw !== "string" || !raw) return null;
-    try {
-      const u = new URL(raw);
-      if (u.protocol !== "https:" && u.protocol !== "http:") return null;
-      return u.href;
-    } catch {
-      return null;
-    }
+    return safeHttpDisplayUrl(image.file.url);
   }
   return null;
+}
+
+function notionFileBlockDisplay(
+  file: Extract<BlockObjectResponse, { type: "file" }>["file"],
+): { url: string; name: string; caption: string | null } | null {
+  const url =
+    file.type === "external"
+      ? safeHttpDisplayUrl(file.external.url)
+      : file.type === "file"
+        ? safeHttpDisplayUrl(file.file.url)
+        : null;
+  if (!url) return null;
+  const rawName = typeof file.name === "string" ? file.name.trim() : "";
+  const name = rawName || "Bestand";
+  const cap = richTextToPlain(file.caption);
+  return { url, name, caption: cap || null };
 }
 
 /**
@@ -143,6 +154,19 @@ export function mapNotionBlockToDisplay(
         kind: "image",
         url,
         caption: cap || null,
+        depth,
+      };
+    }
+    case "file": {
+      const parsed = notionFileBlockDisplay(block.file);
+      if (!parsed) {
+        return { kind: "unsupported", notionType: "file", depth };
+      }
+      return {
+        kind: "file",
+        url: parsed.url,
+        name: parsed.name,
+        caption: parsed.caption,
         depth,
       };
     }

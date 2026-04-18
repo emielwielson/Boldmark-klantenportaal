@@ -26,6 +26,15 @@ export type TaskPageDisplayBlock =
       caption: string | null;
       depth: number;
     }
+  | {
+      kind: "file";
+      /** Download/open URL (`external` or expiring hosted `file`) */
+      url: string;
+      /** Display name from Notion */
+      name: string;
+      caption: string | null;
+      depth: number;
+    }
   | { kind: "unsupported"; notionType: string; depth: number };
 
 export type TaskPageCommentDTO = {

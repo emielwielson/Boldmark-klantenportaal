@@ -178,6 +178,32 @@ function BlockLine({
           ) : null}
         </figure>
       );
+    case "file":
+      return (
+        <div
+          className={`my-1 flex flex-col gap-1 ${bodyText}`}
+          style={depthPad}
+        >
+          <div className="flex min-w-0 items-start gap-2 rounded-md border border-task-border bg-task-field/30 px-3 py-2.5">
+            <span className="mt-0.5 shrink-0 text-base leading-none" aria-hidden>
+              📎
+            </span>
+            <a
+              href={block.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="min-w-0 break-words font-medium text-task-ink underline decoration-task-ink/35 underline-offset-2 hover:decoration-task-ink/60"
+            >
+              {block.name}
+            </a>
+          </div>
+          {block.caption ? (
+            <p className="text-[0.8125rem] leading-snug text-task-ink/65">
+              {block.caption}
+            </p>
+          ) : null}
+        </div>
+      );
     case "unsupported":
       return (
         <p
