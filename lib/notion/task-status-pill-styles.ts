@@ -71,3 +71,62 @@ export function getTaskStatusPillStyle(statusName: string): TaskStatusPillStyle 
   if (!key) return NEUTRAL;
   return STATUS_LOOKUP.get(key) ?? NEUTRAL;
 }
+
+/** Dropdown `<optgroup>` labels and option order (Boldmark board). */
+const STATUS_SELECT_GROUP_ORDER: { label: string; canonicalOrder: string[] }[] =
+  [
+    {
+      label: "To-do",
+      canonicalOrder: ["niet gestart", "aan te leveren"],
+    },
+    {
+      label: "In progress",
+      canonicalOrder: [
+        "bezig",
+        "na te kijken",
+        "aan het testen",
+        "nagekeken",
+        "kan ingepland worden",
+        "on hold",
+        "waiting input",
+      ],
+    },
+    {
+      label: "Complete",
+      canonicalOrder: ["ingepland", "uitgevoerd", "geannuleerd"],
+    },
+  ];
+
+export type StatusSelectGroup = { label: string; options: string[] };
+
+/**
+ * Splits Notion status option names into groups, sorted like the Boldmark reference.
+ * Names that are not in the reference list are placed last under "Overig" (A–Z, nl).
+ */
+export function groupStatusNamesForSelect(names: string[]): StatusSelectGroup[] {
+  const remaining = new Set(names);
+  const out: StatusSelectGroup[] = [];
+
+  for (const { label, canonicalOrder } of STATUS_SELECT_GROUP_ORDER) {
+    const options: string[] = [];
+    for (const canon of canonicalOrder) {
+      const match = [...remaining].find(
+        (n) => n.trim().toLowerCase() === canon,
+      );
+      if (match !== undefined) {
+        options.push(match);
+        remaining.delete(match);
+      }
+    }
+    if (options.length > 0) {
+      out.push({ label, options });
+    }
+  }
+
+  if (remaining.size > 0) {
+    const rest = [...remaining].sort((a, b) => a.localeCompare(b, "nl"));
+    out.push({ label: "Overig", options: rest });
+  }
+
+  return out;
+}

@@ -13,10 +13,14 @@ import {
   plainDateFromInput,
 } from "@/lib/notion/cached-property-display";
 import {
+  getTaskStatusPillStyle,
+  groupStatusNamesForSelect,
+} from "@/lib/notion/task-status-pill-styles";
+import {
   getPortalOrderedPropertyKeys,
   shouldShowPropertyEditor,
 } from "@/lib/notion/portal-task-properties";
-import { TaskStatusPill, TaskStatusPillPicker } from "@/components/tasks/task-status-pill";
+import { TaskStatusPill } from "@/components/tasks/task-status-pill";
 import { InlineFieldError } from "@/components/ui/InlineFieldError";
 import { Spinner } from "@/components/ui/Spinner";
 import { useRouter } from "next/navigation";
@@ -273,15 +277,32 @@ function EditableControl({
     const schemaNames = propId ? propertyOptionsById[propId] : undefined;
     const names = mergeStatusOptionNames(schemaNames, snapshot);
     const val = typeof initial === "string" ? initial : "";
+    const groups = groupStatusNamesForSelect(names);
+    const chip = val
+      ? getTaskStatusPillStyle(val).chip
+      : "border-black/[0.12] bg-white text-ink";
     return (
-      <div className="flex flex-wrap items-start gap-2">
-        <TaskStatusPillPicker
-          names={names}
+      <div className="flex flex-wrap items-center gap-2">
+        <select
+          className={`min-h-[44px] w-full max-w-md rounded-md border border-black/[0.12] px-3 py-2 text-sm shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/25 ${chip}`}
           value={val}
-          saving={saving}
-          onSelect={(v) => void onSave(propKey, v)}
-        />
-        {saving ? <Spinner className="size-4 self-center" /> : null}
+          disabled={saving}
+          onChange={(e) =>
+            void onSave(propKey, e.target.value === "" ? null : e.target.value)
+          }
+        >
+          <option value="">—</option>
+          {groups.map((g) => (
+            <optgroup key={g.label} label={g.label}>
+              {g.options.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+        {saving ? <Spinner className="size-4" /> : null}
       </div>
     );
   }
