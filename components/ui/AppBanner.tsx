@@ -11,8 +11,8 @@ const variantClass: Record<AppBannerVariant, string> = {
   ok: "border-emerald-200/80 bg-emerald-50/90 text-emerald-950",
   warn: "border-amber-200/80 bg-amber-50/90 text-amber-950",
   denied: "border-red-200/80 bg-red-50/90 text-red-950",
-  config: "border-border bg-surface text-content/90 shadow-sm",
-  neutral: "border-border bg-surface text-content/90 shadow-sm",
+  config: "border-task-border bg-task-field text-task-ink/90 shadow-sm",
+  neutral: "border-task-border bg-task-field text-task-ink/90 shadow-sm",
 };
 
 export function AppBanner({

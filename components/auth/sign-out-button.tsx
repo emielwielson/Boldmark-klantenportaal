@@ -25,7 +25,7 @@ export function SignOutButton() {
       type="button"
       onClick={handleSignOut}
       disabled={loading}
-      className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm text-content transition-colors hover:bg-content/[0.06] disabled:opacity-50"
+      className="rounded-md border border-ink/25 bg-ink/10 px-3 py-1.5 text-sm text-ink transition-colors hover:bg-ink/15 disabled:opacity-50"
     >
       {loading ? "Bezig…" : "Uitloggen"}
     </button>

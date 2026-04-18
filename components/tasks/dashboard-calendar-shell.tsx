@@ -23,10 +23,10 @@ function isWeekendDay(year: number, monthIndex: number, day: number): boolean {
   return dow === 0 || dow === 6;
 }
 
-const weekendHeaderCell = "bg-stone-100/70 text-content/55";
-const weekdayHeaderCell = "bg-content/[0.05] text-content/55";
+const weekendHeaderCell = "bg-stone-100/70 text-task-ink/55";
+const weekdayHeaderCell = "bg-task-ink/[0.06] text-task-ink/55";
 const weekendDayCell = "bg-stone-100/50";
-const weekdayDayCell = "bg-field";
+const weekdayDayCell = "bg-task-field";
 
 function monthTitleNl(year: number, monthIndex: number): string {
   const raw = new Intl.DateTimeFormat("nl-NL", {
@@ -91,8 +91,8 @@ export function DashboardCalendarShell({ tasks }: { tasks: CachedTaskRow[] }) {
 
   if (tasks.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-border bg-surface px-6 py-10 text-center shadow-sm">
-        <p className="text-sm font-medium text-content">Geen taken in dit portaal</p>
+      <div className="rounded-lg border border-dashed border-task-border bg-task-field px-6 py-10 text-center shadow-sm">
+        <p className="text-sm font-medium text-task-ink">Geen taken in dit portaal</p>
         <p className="mt-2 text-sm leading-relaxed text-muted">
           Er zijn nog geen taken waaraan je via Klant bent gekoppeld, of ze zijn
           nog niet gesynchroniseerd. Vernieuw de pagina of neem contact op met je
@@ -105,13 +105,13 @@ export function DashboardCalendarShell({ tasks }: { tasks: CachedTaskRow[] }) {
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink/50">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-task-ink/60">
           Kalender (publicatiedatum)
         </h2>
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            className="min-h-[40px] rounded-md border border-ink/20 bg-ink/5 px-3 text-sm font-medium text-ink hover:bg-ink/10"
+            className="min-h-[40px] rounded-md border border-task-border bg-task-field px-3 text-sm font-medium text-task-ink shadow-sm hover:bg-task-ink/[0.06]"
             onClick={() => {
               const d = new Date();
               setView({ y: d.getFullYear(), m: d.getMonth() });
@@ -121,7 +121,7 @@ export function DashboardCalendarShell({ tasks }: { tasks: CachedTaskRow[] }) {
           </button>
           <button
             type="button"
-            className="min-h-[40px] rounded-md border border-ink/20 bg-ink/5 px-3 text-sm font-medium text-ink hover:bg-ink/10"
+            className="min-h-[40px] rounded-md border border-task-border bg-task-field px-3 text-sm font-medium text-task-ink shadow-sm hover:bg-task-ink/[0.06]"
             onClick={() =>
               setView((v) =>
                 v.m === 0 ? { y: v.y - 1, m: 11 } : { y: v.y, m: v.m - 1 },
@@ -130,12 +130,12 @@ export function DashboardCalendarShell({ tasks }: { tasks: CachedTaskRow[] }) {
           >
             ← Vorige
           </button>
-          <p className="min-w-[10rem] text-center text-sm font-semibold text-ink">
+          <p className="min-w-[10rem] text-center text-sm font-semibold text-task-ink">
             {monthTitleNl(view.y, view.m)}
           </p>
           <button
             type="button"
-            className="min-h-[40px] rounded-md border border-ink/20 bg-ink/5 px-3 text-sm font-medium text-ink hover:bg-ink/10"
+            className="min-h-[40px] rounded-md border border-task-border bg-task-field px-3 text-sm font-medium text-task-ink shadow-sm hover:bg-task-ink/[0.06]"
             onClick={() =>
               setView((v) =>
                 v.m === 11 ? { y: v.y + 1, m: 0 } : { y: v.y, m: v.m + 1 },
@@ -147,8 +147,8 @@ export function DashboardCalendarShell({ tasks }: { tasks: CachedTaskRow[] }) {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-border bg-surface shadow-sm">
-        <div className="grid min-w-[720px] grid-cols-7 gap-px bg-content/12 p-px">
+      <div className="overflow-x-auto rounded-lg border border-task-border bg-task-pane shadow-sm">
+        <div className="grid min-w-[720px] grid-cols-7 gap-px bg-task-ink/12 p-px">
           {WEEKDAYS_SHORT.map((w, i) => (
             <div
               key={w}
@@ -164,7 +164,7 @@ export function DashboardCalendarShell({ tasks }: { tasks: CachedTaskRow[] }) {
               return (
                 <div
                   key={`e-${idx}`}
-                  className="min-h-[88px] bg-content/[0.04] p-1"
+                  className="min-h-[88px] bg-task-ink/[0.04] p-1"
                 />
               );
             }
@@ -177,7 +177,7 @@ export function DashboardCalendarShell({ tasks }: { tasks: CachedTaskRow[] }) {
                   weekend ? weekendDayCell : weekdayDayCell
                 }`}
               >
-                <span className="text-xs font-medium text-content/70">{day}</span>
+                <span className="text-xs font-medium text-task-ink/70">{day}</span>
                 <ul className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto">
                   {dayTasks.map((t) => {
                     const title =
@@ -191,7 +191,7 @@ export function DashboardCalendarShell({ tasks }: { tasks: CachedTaskRow[] }) {
                       <li key={t.notion_page_id} className="min-w-0">
                         <Link
                           href={`/dashboard/task/${t.notion_page_id}`}
-                          className={`block truncate rounded-md px-1.5 py-1 text-xs font-medium text-content underline-offset-2 hover:underline hover:ring-1 hover:ring-content/15 ${surface}`}
+                          className={`block truncate rounded-md px-1.5 py-1 text-xs font-medium text-task-ink underline-offset-2 hover:underline hover:ring-1 hover:ring-task-ink/15 ${surface}`}
                           title={title}
                         >
                           {title}
@@ -208,10 +208,10 @@ export function DashboardCalendarShell({ tasks }: { tasks: CachedTaskRow[] }) {
 
       {undated.length > 0 ? (
         <section className="space-y-3">
-          <h3 className="text-sm font-semibold text-ink/80">
+          <h3 className="text-sm font-semibold text-task-ink/85">
             Zonder publicatiedatum ({undated.length})
           </h3>
-          <ul className="space-y-2 rounded-lg border border-border bg-surface p-4 shadow-sm">
+          <ul className="space-y-2 rounded-lg border border-task-border bg-task-field p-4 shadow-sm">
             {undated.map((t) => {
               const title =
                 getTitleFromProperties(t.properties) ??
@@ -222,7 +222,7 @@ export function DashboardCalendarShell({ tasks }: { tasks: CachedTaskRow[] }) {
                 <li key={t.notion_page_id}>
                   <Link
                     href={`/dashboard/task/${t.notion_page_id}`}
-                    className={`block rounded-md px-2 py-1.5 text-sm font-medium text-content underline-offset-2 hover:underline hover:ring-1 hover:ring-content/15 ${surface}`}
+                    className={`block rounded-md px-2 py-1.5 text-sm font-medium text-task-ink underline-offset-2 hover:underline hover:ring-1 hover:ring-task-ink/15 ${surface}`}
                   >
                     {title}
                   </Link>

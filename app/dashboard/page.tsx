@@ -136,7 +136,9 @@ export default async function DashboardPage() {
         ) : null}
 
         {!blockTaskUi && !cacheError ? (
-          <DashboardCalendarShell tasks={cachedTasks} />
+          <div className="rounded-xl border border-task-border bg-task-pane p-6 text-task-ink shadow-sm sm:p-8">
+            <DashboardCalendarShell tasks={cachedTasks} />
+          </div>
         ) : null}
       </div>
     </div>
