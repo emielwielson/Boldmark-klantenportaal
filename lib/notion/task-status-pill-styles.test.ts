@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   getTaskStatusPillStyle,
+  getTaskStatusSurfaceClass,
   groupStatusNamesForSelect,
 } from "./task-status-pill-styles";
 
@@ -15,6 +16,11 @@ describe("getTaskStatusPillStyle", () => {
 
   it("falls back to neutral for unknown status", () => {
     expect(getTaskStatusPillStyle("Custom status").chip).toContain("slate");
+  });
+
+  it("exposes dashboard surface classes", () => {
+    expect(getTaskStatusSurfaceClass("Uitgevoerd")).toContain("f1faf4");
+    expect(getTaskStatusSurfaceClass("")).toContain("fafafa");
   });
 });
 

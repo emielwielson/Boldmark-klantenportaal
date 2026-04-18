@@ -49,6 +49,18 @@ export function matchPropertyKey(
   return undefined;
 }
 
+/** Current status name from the cached **Status** column, or empty if missing / not a status type. */
+export function getStatusLabelFromProperties(
+  properties: Record<string, unknown>,
+  statusColumnTitle = "Status",
+): string {
+  const key = matchPropertyKey(properties, statusColumnTitle);
+  if (!key) return "";
+  const snap = properties[key];
+  if (getCachedPropertyType(snap) !== "status") return "";
+  return getSelectedStatusName(snap) ?? "";
+}
+
 export function notionPublicPageUrl(notionPageId: string): string {
   const id = notionPageId.replace(/-/g, "");
   return `https://www.notion.so/${id}`;

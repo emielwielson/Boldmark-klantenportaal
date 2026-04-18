@@ -3,11 +3,15 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import { getTitleFromProperties } from "@/lib/notion/cached-property-display";
+import {
+  getStatusLabelFromProperties,
+  getTitleFromProperties,
+} from "@/lib/notion/cached-property-display";
 import {
   formatDayKeyForCalendar,
   getPublicatiedatumDayKey,
 } from "@/lib/notion/task-calendar-date";
+import { getTaskStatusSurfaceClass } from "@/lib/notion/task-status-pill-styles";
 
 import type { CachedTaskRow } from "./task-row-editor";
 
@@ -163,11 +167,15 @@ export function DashboardCalendarShell({ tasks }: { tasks: CachedTaskRow[] }) {
                     const title =
                       getTitleFromProperties(t.properties) ??
                       t.notion_page_id.slice(0, 8);
+                    const statusLabel = getStatusLabelFromProperties(
+                      t.properties,
+                    );
+                    const surface = getTaskStatusSurfaceClass(statusLabel);
                     return (
                       <li key={t.notion_page_id} className="min-w-0">
                         <Link
                           href={`/dashboard/task/${t.notion_page_id}`}
-                          className="block truncate rounded border border-transparent px-0.5 text-xs text-ink underline-offset-2 hover:border-black/[0.08] hover:bg-page hover:underline"
+                          className={`block truncate rounded-md px-1.5 py-1 text-xs font-medium text-ink underline-offset-2 hover:underline hover:ring-1 hover:ring-black/10 ${surface}`}
                           title={title}
                         >
                           {title}
@@ -192,11 +200,13 @@ export function DashboardCalendarShell({ tasks }: { tasks: CachedTaskRow[] }) {
               const title =
                 getTitleFromProperties(t.properties) ??
                 t.notion_page_id.slice(0, 8);
+              const statusLabel = getStatusLabelFromProperties(t.properties);
+              const surface = getTaskStatusSurfaceClass(statusLabel);
               return (
                 <li key={t.notion_page_id}>
                   <Link
                     href={`/dashboard/task/${t.notion_page_id}`}
-                    className="text-sm font-medium text-ink underline-offset-2 hover:underline"
+                    className={`block rounded-md px-2 py-1.5 text-sm font-medium text-ink underline-offset-2 hover:underline hover:ring-1 hover:ring-black/10 ${surface}`}
                   >
                     {title}
                   </Link>

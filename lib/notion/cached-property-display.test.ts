@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   formatCachedPropertyPreview,
+  getStatusLabelFromProperties,
   getTitleFromProperties,
   isCachedPropertyEditable,
   mergeSelectOptionNames,
@@ -13,6 +14,22 @@ describe("notionPublicPageUrl", () => {
     expect(
       notionPublicPageUrl("182d872b-594c-81f6-aa78-00027a202298"),
     ).toBe("https://www.notion.so/182d872b594c81f6aa7800027a202298");
+  });
+});
+
+describe("getStatusLabelFromProperties", () => {
+  it("reads status name from Status column", () => {
+    const properties = {
+      Status: {
+        type: "status",
+        status: { name: "Bezig", id: "x" },
+      },
+    };
+    expect(getStatusLabelFromProperties(properties)).toBe("Bezig");
+  });
+
+  it("returns empty when Status is missing", () => {
+    expect(getStatusLabelFromProperties({})).toBe("");
   });
 });
 
